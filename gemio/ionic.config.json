@@ -1,0 +1,7 @@
+{
+  "name": "gemio",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
