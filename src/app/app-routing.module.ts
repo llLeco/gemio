@@ -11,6 +11,14 @@ const routes: Routes = [
     redirectTo: 'home',
     pathMatch: 'full'
   },
+  {
+    path: 'asset-list',
+    loadChildren: () => import('./asset-list/asset-list.module').then( m => m.AssetListPageModule)
+  },
+  {
+    path: 'asset-details',
+    loadChildren: () => import('./asset-details/asset-details.module').then( m => m.AssetDetailsPageModule)
+  },
 ];
 
 @NgModule({
