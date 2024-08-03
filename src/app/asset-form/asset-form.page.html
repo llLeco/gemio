@@ -1,0 +1,76 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ isEditMode ? 'Edit Asset' : 'Add Asset' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="assetForm" (ngSubmit)="onSubmit()">
+    <ion-item>
+      <ion-label position="floating">Name</ion-label>
+      <ion-input formControlName="name" type="text"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="floating">Type</ion-label>
+      <ion-input formControlName="type" type="text"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="floating">Manufacturer</ion-label>
+      <ion-input formControlName="manufacturer" type="text"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="floating">Model</ion-label>
+      <ion-input formControlName="model" type="text"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="floating">Serial Number</ion-label>
+      <ion-input formControlName="serialNumber" type="text"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="floating">Manufacture Date</ion-label>
+      <ion-datetime formControlName="manufactureDate" display-format="DD/MM/YYYY"></ion-datetime>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="floating">Last Maintenance Date</ion-label>
+      <ion-datetime formControlName="lastMaintenanceDate" display-format="DD/MM/YYYY"></ion-datetime>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="floating">Next Maintenance Date</ion-label>
+      <ion-datetime formControlName="nextMaintenanceDate" display-format="DD/MM/YYYY"></ion-datetime>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Status</ion-label>
+      <ion-select formControlName="status">
+        <ion-select-option value="operational">Operational</ion-select-option>
+        <ion-select-option value="maintenance">Maintenance</ion-select-option>
+        <ion-select-option value="offline">Offline</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item-group formGroupName="location">
+      <ion-item>
+        <ion-label position="floating">Latitude</ion-label>
+        <ion-input formControlName="latitude" type="number"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="floating">Longitude</ion-label>
+        <ion-input formControlName="longitude" type="number"></ion-input>
+      </ion-item>
+    </ion-item-group>
+
+    <ion-button expand="block" type="submit" [disabled]="!assetForm.valid">
+      {{ isEditMode ? 'Update Asset' : 'Create Asset' }}
+    </ion-button>
+  </form>
+</ion-content>

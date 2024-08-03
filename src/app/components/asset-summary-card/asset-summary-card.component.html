@@ -1,0 +1,11 @@
+<ion-card>
+  <ion-card-header>
+    <ion-card-subtitle>{{ asset.type }}</ion-card-subtitle>
+    <ion-card-title>{{ asset.name }}</ion-card-title>
+  </ion-card-header>
+  <ion-card-content>
+    <p><strong>Status:</strong> {{ asset.status }}</p>
+    <p><strong>Last Maintenance:</strong> {{ asset.lastMaintenanceDate | date:'shortDate' }}</p>
+    <p><strong>Next Maintenance:</strong> {{ asset.nextMaintenanceDate | date:'shortDate' }}</p>
+  </ion-card-content>
+</ion-card>
