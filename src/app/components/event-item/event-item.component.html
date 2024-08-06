@@ -1,7 +1,0 @@
-<ion-item>
-  <ion-label>
-    <h2>{{ event.type }}</h2>
-    <p>{{ event.timestamp | date:'medium' }}</p>
-    <p *ngIf="event.details">{{ event.details | json }}</p>
-  </ion-label>
-</ion-item>

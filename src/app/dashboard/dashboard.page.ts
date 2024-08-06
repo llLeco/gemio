@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { AssetService } from '../services/asset.service';
+import { CollectionService } from '../services/collection.service';
 import { ErrorHandlerService } from '../services/error-handler.service';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -8,22 +10,35 @@ import { ErrorHandlerService } from '../services/error-handler.service';
   styleUrls: ['./dashboard.page.scss'],
 })
 export class DashboardPage implements OnInit {
-  assets: any[] | undefined = [];
+  assets: any[] = [];
+  collections: any = [];
+  username: string = '';
+  hederaAccountId: string = '';
   loading: boolean = true;
 
   constructor(
     private assetService: AssetService,
-    private errorHandler: ErrorHandlerService
+    private collectionService: CollectionService,
+    private errorHandler: ErrorHandlerService,
+    private authService: AuthService
   ) { }
 
   ngOnInit() {
-    this.loadAssets();
+    this.loadUserInfo();
+    this.loadCollections();
   }
 
-  async loadAssets() {
+  async loadUserInfo() {
+    const userInfo = await this.authService.getUserInfo();
+    this.username = userInfo.username;
+    this.hederaAccountId = userInfo.hederaAccountId;
+  }
+
+  async loadCollections() {
     try {
-      await this.errorHandler.showLoading('Loading assets...');
-      this.assets = await this.assetService.getAllAssets().toPromise();
+      await this.errorHandler.showLoading('Loading collections...');
+      this.collections = await this.collectionService.getCollections();
+      console.log('Collections', this.collections);
       await this.errorHandler.hideLoading();
     } catch (error) {
       await this.errorHandler.hideLoading();
@@ -33,8 +48,8 @@ export class DashboardPage implements OnInit {
 
   async doRefresh(event: any) {
     try {
-      this.assets = await this.assetService.getAllAssets().toPromise();
-      this.errorHandler.showToast('Assets refreshed successfully');
+      this.collections = await this.collectionService.getCollections();
+      this.errorHandler.showToast('Collections refreshed successfully');
     } catch (error) {
       this.errorHandler.handleError(error);
     } finally {

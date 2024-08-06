@@ -8,15 +8,23 @@ import { Observable } from 'rxjs';
 })
 export class AuthService {
   private apiUrl = 'http://localhost:3000/auth';
+  private userInfo: any = null;
 
   constructor(private http: HttpClient) {}
 
-  login(username: string, password: string): Observable<{access_token: string}> {
-    return this.http.post<{access_token: string}>(`${this.apiUrl}/login`, { username, password })
+  login(username: string, password: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/login`, { username, password })
       .pipe(
         tap(response => {
           if (response && response.access_token) {
             localStorage.setItem('access_token', response.access_token);
+            localStorage.setItem('username', response.username);
+            localStorage.setItem('hederaAccountId', response.hederaAccountId);
+
+            this.userInfo = {
+              username: response.username,
+              hederaAccountId: response.hederaAccountId
+            };
           }
         })
       );
@@ -24,13 +32,22 @@ export class AuthService {
 
   logout(): void {
     localStorage.removeItem('access_token');
+    localStorage.removeItem('username');
+    localStorage.removeItem('hederaAccountId');
+    this.userInfo = null;
   }
 
-  getToken(): string | null {
-    return localStorage.getItem('access_token');
+  getUserInfo(): any {
+    if (!this.userInfo) {
+      this.userInfo = {
+        username: localStorage.getItem('username'),
+        hederaAccountId: localStorage.getItem('hederaAccountId')
+      };
+    }
+    return this.userInfo;
   }
 
   isLoggedIn(): boolean {
-    return !!this.getToken();
+    return !!localStorage.getItem('access_token');
   }
 }

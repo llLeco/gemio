@@ -9,10 +9,6 @@ const routes: Routes = [
     pathMatch: 'full'
   },
   {
-    path: 'asset-events/:id',
-    loadChildren: () => import('./asset-events/asset-events.module').then( m => m.AssetEventsPageModule)
-  },
-  {
     path: 'login',
     loadChildren: () => import('./login/login.module').then( m => m.LoginPageModule)
   },
@@ -22,7 +18,7 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
-    path: 'asset-form',
+    path: 'asset-form/:id',
     loadChildren: () => import('./asset-form/asset-form.module').then( m => m.AssetFormPageModule),
     canActivate: [AuthGuard]
   },
@@ -30,7 +26,15 @@ const routes: Routes = [
     path: 'asset-form/:id',
     loadChildren: () => import('./asset-form/asset-form.module').then( m => m.AssetFormPageModule),
     canActivate: [AuthGuard]
-  }
+  },
+  {
+    path: 'asset/:id',
+    loadChildren: () => import('./asset-details/asset-details.module').then( m => m.AssetDetailsPageModule)
+  },
+  {
+    path: 'collection-form',
+    loadChildren: () => import('./collection-form/collection-form.module').then( m => m.CollectionFormPageModule)
+  },
 ];
 
 @NgModule({

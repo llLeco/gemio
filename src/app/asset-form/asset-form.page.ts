@@ -12,8 +12,7 @@ import { ErrorHandlerService } from '../services/error-handler.service';
 })
 export class AssetFormPage implements OnInit {
   assetForm: FormGroup = new FormGroup({});
-  isEditMode = false;
-  assetId: any;
+  public collectionId: string | null = null;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -26,58 +25,31 @@ export class AssetFormPage implements OnInit {
     this.createForm();
   }
 
-  ngOnInit() {
-    this.assetId = this.route.snapshot.paramMap.get('id');
-    if (this.assetId) {
-      this.isEditMode = true;
-      this.loadAssetData();
-    }
+  async ngOnInit() {
+    this.collectionId = this.route.snapshot.paramMap.get('id');
   }
 
   createForm() {
     this.assetForm = this.formBuilder.group({
       name: ['', Validators.required],
-      type: ['', Validators.required],
       manufacturer: ['', Validators.required],
       model: ['', Validators.required],
       serialNumber: ['', Validators.required],
       manufactureDate: ['', Validators.required],
-      lastMaintenanceDate: [''],
-      nextMaintenanceDate: [''],
-      status: ['operational', Validators.required],
-      location: this.formBuilder.group({
-        latitude: ['', [Validators.required, Validators.min(-90), Validators.max(90)]],
-        longitude: ['', [Validators.required, Validators.min(-180), Validators.max(180)]],
-      }),
-      specifications: this.formBuilder.group({}),
-      currentPerformance: this.formBuilder.group({}),
     });
-  }
-
-  async loadAssetData() {
-    try {
-      await this.errorHandler.showLoading('Loading asset data...');
-      const asset = await this.assetService.getAssetById(this.assetId).toPromise();
-      this.assetForm.patchValue(asset);
-      await this.errorHandler.hideLoading();
-    } catch (error) {
-      await this.errorHandler.hideLoading();
-      this.errorHandler.handleError(error);
-    }
   }
 
   async onSubmit() {
     if (this.assetForm.valid) {
       const assetData = this.assetForm.value;
+      assetData.collectionId = this.collectionId;
+
       try {
-        await this.errorHandler.showLoading(this.isEditMode ? 'Updating asset...' : 'Creating asset...');
-        if (this.isEditMode) {
-          await this.assetService.updateAsset(this.assetId, assetData).toPromise();
-          this.errorHandler.showToast('Asset updated successfully');
-        } else {
-          await this.assetService.createAsset(assetData).toPromise();
-          this.errorHandler.showToast('Asset created successfully');
-        }
+        await this.errorHandler.showLoading('Creating asset...');
+
+        await this.assetService.createAsset(assetData);
+        this.errorHandler.showToast('Asset created successfully');
+
         await this.errorHandler.hideLoading();
         this.router.navigate(['/dashboard']);
       } catch (error) {
