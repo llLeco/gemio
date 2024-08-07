@@ -5,8 +5,6 @@
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:3000',
-  hederaAccountId: '0.0.534848',
-  hederaPrivateKey: '302e020100300506032b6570042204205859e46282e7d353903a3014ccaa3b8d75ea9bdd2a6ce5c87d38b6886e951ec0',
 };
 
 /*

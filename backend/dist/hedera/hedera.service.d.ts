@@ -1,16 +1,11 @@
 import { OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Cache } from 'cache-manager';
 import { Client } from "@hashgraph/sdk";
 export declare class HederaService implements OnModuleInit, OnModuleDestroy {
-    private cacheManager;
     private configService;
     private readonly logger;
     private client;
-    private network;
-    private topicId;
-    private readonly MAX_METADATA_SIZE;
-    constructor(cacheManager: Cache, configService: ConfigService);
+    constructor(configService: ConfigService);
     onModuleInit(): Promise<void>;
     onModuleDestroy(): Promise<void>;
     private initializeClient;

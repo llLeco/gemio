@@ -8,23 +8,16 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 var HederaService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HederaService = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
-const cache_manager_1 = require("@nestjs/cache-manager");
-const common_2 = require("@nestjs/common");
 const sdk_1 = require("@hashgraph/sdk");
 let HederaService = HederaService_1 = class HederaService {
-    constructor(cacheManager, configService) {
-        this.cacheManager = cacheManager;
+    constructor(configService) {
         this.configService = configService;
         this.logger = new common_1.Logger(HederaService_1.name);
-        this.MAX_METADATA_SIZE = 100;
     }
     async onModuleInit() {
         await this.initializeClient();
@@ -207,11 +200,6 @@ let HederaService = HederaService_1 = class HederaService {
         return JSON.parse(contents.toString());
     }
     async getNFTInfo(tokenId) {
-        const cacheKey = `nftInfo:${tokenId}`;
-        const cachedInfo = await this.cacheManager.get(cacheKey);
-        if (cachedInfo) {
-            return cachedInfo;
-        }
         const query = new sdk_1.TokenInfoQuery().setTokenId(tokenId);
         const tokenInfo = await this.executeWithRetry(() => query.execute(this.client));
         const info = {
@@ -220,7 +208,6 @@ let HederaService = HederaService_1 = class HederaService {
             totalSupply: tokenInfo.totalSupply.toString(),
             maxSupply: tokenInfo.maxSupply.toString(),
         };
-        await this.cacheManager.set(cacheKey, info, 300000);
         return info;
     }
     async createTopic(assetData) {
@@ -291,7 +278,6 @@ let HederaService = HederaService_1 = class HederaService {
 exports.HederaService = HederaService;
 exports.HederaService = HederaService = HederaService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, common_2.Inject)(cache_manager_1.CACHE_MANAGER)),
-    __metadata("design:paramtypes", [Object, config_1.ConfigService])
+    __metadata("design:paramtypes", [config_1.ConfigService])
 ], HederaService);
 //# sourceMappingURL=hedera.service.js.map
