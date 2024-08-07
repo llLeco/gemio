@@ -5,11 +5,11 @@
     {
       "src": "package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "dist/seu-projeto-angular" }
+      "config": { "distDir": "dist/gemio" }
     }
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "backend/src/main.ts" },
-    { "src": "/(.*)", "dest": "/dist/seu-projeto-angular/$1" }
+    { "src": "/(.*)", "dest": "/dist/gemio/$1" }
   ]
 }
