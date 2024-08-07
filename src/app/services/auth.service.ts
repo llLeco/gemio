@@ -8,13 +8,12 @@ import { environment } from 'src/environments/environment';
   providedIn: 'root'
 })
 export class AuthService {
-  // private apiUrl = 'http://localhost:3000/auth';
   private userInfo: any = null;
 
   constructor(private http: HttpClient) {}
 
   login(username: string, password: string): Observable<any> {
-    return this.http.post<any>(`${environment.apiUrl}/login`, { username, password })
+    return this.http.post<any>(`${environment.apiUrl}/auth/login`, { username, password })
       .pipe(
         tap(response => {
           if (response && response.access_token) {
