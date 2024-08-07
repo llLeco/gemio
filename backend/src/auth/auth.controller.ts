@@ -1,4 +1,4 @@
-import { Controller, Post, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, UseGuards, Request } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 
@@ -15,7 +15,7 @@ export class AuthController {
   }
 
   // get server status response
-  @Post('status')
+  @Get('status')
   async status() {
     return { status: 'ok' };
   }
