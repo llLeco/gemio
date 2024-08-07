@@ -13,4 +13,10 @@ export class AuthController {
   async login(@Request() req) {
     return this.authService.login(req.user);
   }
+
+  // get server status response
+  @Post('status')
+  async status() {
+    return { status: 'ok' };
+  }
 }
