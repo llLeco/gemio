@@ -11,29 +11,20 @@ export class AuthService {
   ) {}
 
   async validateUser(username: string, pass: string): Promise<any> {
-    console.log(`Tentando validar usuário: ${username}`);
     const user = await this.usersService.findOne(username);
-    if (!user) {
-      console.log(`Usuário não encontrado: ${username}`);
-      return null;
-    }
-
-    const isPasswordValid = await bcrypt.compare(pass, user.password);
-
-    if (isPasswordValid) {
+    if (user && await bcrypt.compare(pass, user.password)) {
       const { password, ...result } = user;
-      console.log(`Usuário validado com sucesso: ${username}`);
       return result;
-    } else {
-      console.log(`Credenciais inválidas para o usuário: ${username}`);
-      return null;
     }
+    return null;
   }
 
   async login(user: any) {
-    const payload = { username: user.username, sub: user.userId };
+    const payload = { username: user.username, sub: user.hederaAccountId };
     return {
       access_token: this.jwtService.sign(payload),
+      username: user.username,
+      hederaAccountId: user.hederaAccountId,
     };
   }
 }

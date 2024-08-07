@@ -19,7 +19,6 @@ const config_1 = require("@nestjs/config");
 const cache_manager_1 = require("@nestjs/cache-manager");
 const common_2 = require("@nestjs/common");
 const operators_1 = require("rxjs/operators");
-const buffer_1 = require("buffer");
 const rxjs_1 = require("rxjs");
 const sdk_1 = require("@hashgraph/sdk");
 let HederaService = HederaService_1 = class HederaService {
@@ -100,13 +99,8 @@ let HederaService = HederaService_1 = class HederaService {
         return collections;
     }
     async getNFTsInCollection(collectionId) {
-        console.log('Fetching NFTs for collection:', collectionId);
         const nfts = [];
         const tokenId = sdk_1.TokenId.fromString(collectionId);
-        if (collectionId === '0.0.2666544') {
-            this.logger.warn(`Skipping token ${collectionId} as it is the HBAR token on testnet.`);
-            return nfts;
-        }
         try {
             const tokenInfo = await new sdk_1.TokenInfoQuery()
                 .setTokenId(tokenId)
@@ -116,43 +110,36 @@ let HederaService = HederaService_1 = class HederaService {
                 return nfts;
             }
             const totalSupply = tokenInfo.totalSupply.toNumber();
-            const nftPromises = Array.from({ length: totalSupply }, (_, i) => i + 1).map(async (serialNumber) => {
+            for (let i = 1; i <= totalSupply; i++) {
                 try {
-                    const nftInfoQuery = await new sdk_1.TokenNftInfoQuery()
-                        .setNftId(new sdk_1.NftId(tokenId, serialNumber))
+                    const nftId = new sdk_1.NftId(tokenId, i);
+                    const nftInfo = await new sdk_1.TokenNftInfoQuery()
+                        .setNftId(nftId)
                         .execute(this.client);
-                    const nftInfo = nftInfoQuery[0];
-                    if (nftInfo.accountId && nftInfo.creationTime) {
-                        const metadata = buffer_1.Buffer.from(nftInfo.metadata).toString('utf8');
-                        const creationTime = new Date(nftInfo.creationTime.seconds.low * 1000 + nftInfo.creationTime.nanos.low / 1000000);
-                        if (metadata && creationTime) {
-                            return {
-                                serialNumber: serialNumber.toString(),
-                                owner: nftInfo.accountId.toString(),
-                                metadata,
-                                creationTime,
-                            };
-                        }
-                    }
-                    this.logger.warn(`NFT ${serialNumber} in collection ${collectionId} has incomplete data.`);
-                }
-                catch (nftError) {
-                    if (nftError.name === 'StatusError' && nftError.status === 'INVALID_NFT_ID') {
-                        this.logger.warn(`NFT ${serialNumber} in collection ${collectionId} does not exist.`);
+                    if (nftInfo && nftInfo.length > 0 && nftInfo[0].accountId) {
+                        nfts.push({
+                            id: collectionId,
+                            serialNumber: i.toString(),
+                            owner: nftInfo[0].accountId.toString(),
+                            metadata: nftInfo[0].metadata
+                                ? Buffer.from(nftInfo[0].metadata).toString('utf8')
+                                : null,
+                            creationTime: nftInfo[0].creationTime.toDate(),
+                        });
                     }
                     else {
-                        this.logger.error(`Error fetching NFT ${serialNumber} from collection ${collectionId}:`, nftError);
+                        this.logger.warn(`NFT ${i} in collection ${collectionId} has unexpected structure or is burned.`);
                     }
                 }
-                return null;
-            });
-            const nftResults = await Promise.all(nftPromises);
-            return nftResults.filter(nft => nft !== null);
+                catch (nftError) {
+                    this.logger.error(`Error fetching NFT ${i} from collection ${collectionId}:`, nftError);
+                }
+            }
         }
         catch (error) {
             this.logger.error(`Error fetching NFTs for collection ${collectionId}:`, error);
-            return nfts;
         }
+        return nfts;
     }
     async transferHbar(from, to, amount) {
         const transferTransaction = await this.executeWithRetry(() => new sdk_1.TransferTransaction()
@@ -187,7 +174,7 @@ let HederaService = HederaService_1 = class HederaService {
         const supplyKey = sdk_1.PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY'));
         const mintTx = await new sdk_1.TokenMintTransaction()
             .setTokenId(tokenId)
-            .setMetadata([buffer_1.Buffer.from(metadata)])
+            .setMetadata([Buffer.from(metadata)])
             .freezeWith(this.client);
         const mintTxSign = await mintTx.sign(supplyKey);
         const mintTxSubmit = await this.executeWithRetry(() => mintTxSign.execute(this.client));
@@ -212,50 +199,11 @@ let HederaService = HederaService_1 = class HederaService {
         await this.cacheManager.set(cacheKey, info, 300000);
         return info;
     }
-    async createFile(contents) {
-        const transaction = new sdk_1.FileCreateTransaction()
-            .setKeys([sdk_1.PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY'))])
-            .setContents(contents)
-            .setMaxTransactionFee(new sdk_1.Hbar(2))
-            .freezeWith(this.client);
-        const signTx = await transaction.sign(sdk_1.PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY')));
-        const submitTx = await this.executeWithRetry(() => signTx.execute(this.client));
-        const receipt = await submitTx.getReceipt(this.client);
-        const fileId = receipt.fileId;
-        this.logger.log(`The file ID is: ${fileId}`);
-        return fileId.toString();
-    }
-    async updateFile(fileId, newContents) {
-        const transaction = await new sdk_1.FileUpdateTransaction()
-            .setFileId(sdk_1.FileId.fromString(fileId))
-            .setContents(newContents)
-            .setMaxTransactionFee(new sdk_1.Hbar(2))
-            .freezeWith(this.client);
-        const signTx = await transaction.sign(sdk_1.PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY')));
-        const submitTx = await this.executeWithRetry(() => signTx.execute(this.client));
-        await submitTx.getReceipt(this.client);
-        this.logger.log(`The file ${fileId} was updated`);
-    }
-    async getFileContents(fileId) {
-        const query = new sdk_1.FileContentsQuery().setFileId(sdk_1.FileId.fromString(fileId));
-        const contents = await this.executeWithRetry(() => query.execute(this.client));
-        return contents.toString();
-    }
-    async appendToFile(fileId, newContents) {
-        const transaction = await new sdk_1.FileAppendTransaction()
-            .setFileId(sdk_1.FileId.fromString(fileId))
-            .setContents(newContents)
-            .setMaxTransactionFee(new sdk_1.Hbar(2))
-            .freezeWith(this.client);
-        const signTx = await transaction.sign(sdk_1.PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY')));
-        const submitTx = await this.executeWithRetry(() => signTx.execute(this.client));
-        await submitTx.getReceipt(this.client);
-        this.logger.log(`The file ${fileId} was appended`);
-    }
     async createTopic(assetData) {
         const transaction = new sdk_1.TopicCreateTransaction()
             .setAdminKey(sdk_1.PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY')))
             .setSubmitKey(sdk_1.PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY')))
+            .setTopicMemo("Gemio Asset Events Log")
             .setTopicMemo(`Gemio Asset Topic - ${assetData.name} (${assetData.symbol}): Detailed asset information and updates`)
             .setMaxTransactionFee(new sdk_1.Hbar(1));
         const txResponse = await this.executeWithRetry(() => transaction.execute(this.client));
@@ -282,7 +230,7 @@ let HederaService = HederaService_1 = class HederaService {
                 subscription.unsubscribe();
                 reject(error);
             }, (message) => {
-                const buffer = buffer_1.Buffer.from(message.contents).toString("utf8");
+                const buffer = Buffer.from(message.contents).toString("utf8");
                 messages.push(JSON.parse(buffer).message);
                 if (messages.length >= messageCount) {
                     subscription.unsubscribe();

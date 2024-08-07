@@ -1,7 +1,5 @@
 export class User {
-  id: number;
+  hederaAccountId: string;
   username: string;
   password: string;
-  email: string;
-  role: string;
 }

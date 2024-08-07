@@ -30,6 +30,7 @@ export class DashboardPage implements OnInit {
 
   async loadUserInfo() {
     const userInfo = await this.authService.getUserInfo();
+    console.log('User info', userInfo);
     this.username = userInfo.username;
     this.hederaAccountId = userInfo.hederaAccountId;
   }

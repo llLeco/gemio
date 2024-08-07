@@ -15,20 +15,11 @@ let UsersService = class UsersService {
                 hederaAccountId: '0.0.534863',
                 username: 'leco',
                 password: '$2b$10$4zpsMBKFFkcj8OY4CJmuruf8Vedv4CS7pI5Q6/lfdggT5niK/x3KW',
-                email: 'leco@example.com',
-                role: 'admin',
             },
         ];
     }
     async findOne(username) {
         return this.users.find(user => user.username === username);
-    }
-    async findByHederaAccountId(hederaAccountId) {
-        return this.users.find(user => user.hederaAccountId === hederaAccountId);
-    }
-    async create(user) {
-        this.users.push(user);
-        return user;
     }
 };
 exports.UsersService = UsersService;

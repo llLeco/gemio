@@ -59,25 +59,25 @@ export class AssetService {
     }
   }
 
-  async updateAsset(id: string, assetData: any): Promise<any> {
-    try {
-      const response = await axios.put(`${this.apiUrl}/${id}`, assetData, { headers: this.getHeaders() });
-      return response.data;
-    } catch (error) {
-      console.error(`Error updating asset ID ${id}`, error);
-      throw error;
-    }
-  }
+  // async updateAsset(id: string, assetData: any): Promise<any> {
+  //   try {
+  //     const response = await axios.put(`${this.apiUrl}/${id}`, assetData, { headers: this.getHeaders() });
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error(`Error updating asset ID ${id}`, error);
+  //     throw error;
+  //   }
+  // }
 
-  async deleteAsset(id: string): Promise<any> {
-    try {
-      const response = await axios.delete(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
-      return response.data;
-    } catch (error) {
-      console.error(`Error deleting asset ID ${id}`, error);
-      throw error;
-    }
-  }
+  // async deleteAsset(id: string): Promise<any> {
+  //   try {
+  //     const response = await axios.delete(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error(`Error deleting asset ID ${id}`, error);
+  //     throw error;
+  //   }
+  // }
 
   async getAssetEvents(topicId: string, startTime?: Date): Promise<any[]> {
     try {
@@ -101,13 +101,13 @@ export class AssetService {
     }
   }
 
-  async getAssetMetadataHistory(fileId: string): Promise<any[]> {
-    try {
-      const response = await axios.get(`${this.apiUrl}/metadata-history/${fileId}`, { headers: this.getHeaders() });
-      return response.data;
-    } catch (error) {
-      console.error(`Error fetching metadata history for file ID ${fileId}`, error);
-      throw error;
-    }
-  }
+  // async getAssetMetadataHistory(fileId: string): Promise<any[]> {
+  //   try {
+  //     const response = await axios.get(`${this.apiUrl}/metadata-history/${fileId}`, { headers: this.getHeaders() });
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error(`Error fetching metadata history for file ID ${fileId}`, error);
+  //     throw error;
+  //   }
+  // }
 }

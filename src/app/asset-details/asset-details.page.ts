@@ -47,12 +47,13 @@ export class AssetDetailsPage implements OnInit, OnDestroy {
 
     try {
       const assets = await this.collectionService.getCollectionAssets(id);
+      console.log('Assets:', assets);
 
       this.assets = await Promise.all(
         assets.map(async (asset) => {
           const details = await this.assetService.getAssetDetails(asset.id);
+          console.log('Details:', details);
           const messages = await this.hederaService.getMessages('0.0.4657504', new Date(0)).toPromise();
-
           console.log('Messages:', messages);
 
           const assetWithDetails = {

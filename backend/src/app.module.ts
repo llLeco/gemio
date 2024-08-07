@@ -9,6 +9,8 @@ import { HederaModule } from './hedera/hedera.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
+import { CollectionController } from './collections/collection.controller';
+import { CollectionService } from './collections/collection.service';
 
 @Module({
   imports: [
@@ -19,7 +21,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     ConfigModule.forRoot(),
     CacheModule.register(),
   ],
-  controllers: [AppController, AssetController],
-  providers: [AppService, AssetService],
+  controllers: [AppController, AssetController, CollectionController],
+  providers: [AppService, AssetService, CollectionService],
 })
 export class AppModule {}

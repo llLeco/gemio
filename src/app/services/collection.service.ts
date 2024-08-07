@@ -19,6 +19,7 @@ export class CollectionService {
   async getCollections(): Promise<any[]> {
     try {
       const response = await axios.get(this.apiUrl, { headers: this.getHeaders() });
+      console.log('Collections:', response);
       return response.data.collections;
     } catch (error) {
       console.error('Error fetching collections', error);

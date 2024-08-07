@@ -42,8 +42,8 @@ let AuthService = class AuthService {
         const payload = { username: user.username, sub: user.hederaAccountId };
         return {
             access_token: this.jwtService.sign(payload),
+            username: user.username,
             hederaAccountId: user.hederaAccountId,
-            username: user.username
         };
     }
 };
