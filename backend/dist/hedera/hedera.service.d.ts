@@ -9,6 +9,7 @@ export declare class HederaService implements OnModuleInit, OnModuleDestroy {
     private client;
     private network;
     private topicId;
+    private readonly MAX_METADATA_SIZE;
     constructor(cacheManager: Cache, configService: ConfigService);
     onModuleInit(): Promise<void>;
     onModuleDestroy(): Promise<void>;
@@ -23,7 +24,9 @@ export declare class HederaService implements OnModuleInit, OnModuleDestroy {
     getNFTsInCollection(collectionId: string): Promise<any[]>;
     transferHbar(from: string, to: string, amount: number): Promise<string>;
     createNFTCollection(name: string, symbol: string): Promise<string>;
-    mintNFT(tokenId: string, metadata: any): Promise<string>;
+    mintNFT(collectionId: string, metadata: any): Promise<string>;
+    private createImmutableFile;
+    getFileContents(fileId: string): Promise<any>;
     getNFTInfo(tokenId: string): Promise<any>;
     createTopic(assetData: any): Promise<string>;
     submitMessage(topicId: string, message: string): Promise<string>;

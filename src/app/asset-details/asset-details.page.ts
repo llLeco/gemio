@@ -51,9 +51,10 @@ export class AssetDetailsPage implements OnInit, OnDestroy {
 
       this.assets = await Promise.all(
         assets.map(async (asset) => {
-          const details = await this.assetService.getAssetDetails(asset.id);
+          const details = await this.assetService.getAssetDetails(asset.metadata);
           console.log('Details:', details);
-          const messages = await this.hederaService.getMessages('0.0.4657504', new Date(0)).toPromise();
+
+          const messages = await this.hederaService.getMessages(details.topicId, new Date(0)).toPromise();
           console.log('Messages:', messages);
 
           const assetWithDetails = {
@@ -79,9 +80,8 @@ export class AssetDetailsPage implements OnInit, OnDestroy {
     try {
       console.log('Publishing event:', this.newEvent);
       console.log('Asset:', asset);
-      await this.assetService.postAssetEvent('0.0.4657504', this.newEvent);
+      await this.assetService.postAssetEvent(asset.details.topicId, this.newEvent);
       this.newEvent = '';
-      // Não é necessário recarregar todos os assets, apenas adicione o novo evento à lista
       asset.events.push(this.newEvent);
     } catch (error) {
       console.error('Error publishing event:', error);

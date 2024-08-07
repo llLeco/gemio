@@ -32,10 +32,21 @@
             <p slot="end">{{ asset.creationTime }}</p>
           </ion-item>
           <ion-item>
-            <ion-label>Asset Metadata</ion-label>
+            <ion-label>Hedera File ID</ion-label>
             <p slot="end">{{ asset.metadata }}</p>
           </ion-item>
         </ion-list>
+
+        <!-- Show metadata Content -->
+        <ion-list>
+          <ion-item>
+            <ion-label>Metadata</ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-label>{{ asset.details | json }}</ion-label>
+          </ion-item>
+        </ion-list>
+
         <!-- Show Events -->
         <ion-list>
           <ion-item>
@@ -45,6 +56,7 @@
             <ion-label>{{ event }}</ion-label>
           </ion-item>
         </ion-list>
+
         <!-- Input to submit a json to be published as an event -->
         <ion-item>
           <ion-label position="stacked">Event Payload</ion-label>

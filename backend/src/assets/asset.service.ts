@@ -10,16 +10,19 @@ export class AssetService {
   constructor(private readonly hederaService: HederaService) {}
 
   async createAsset(createAssetDto: CreateAssetDto): Promise<Asset> {
-
     try {
 
+      console.log('Creating asset:', createAssetDto);
+
       const topicId = await this.hederaService.createTopic(createAssetDto);
+      console.log('Topic ID:', topicId);
 
       const initialMetadata = {
         data: createAssetDto,
         timestamp: new Date().toISOString(),
         topicId: topicId
       };
+      console.log('Initial metadata:', initialMetadata);
 
       const serialNumber = await this.hederaService.mintNFT(createAssetDto.collectionId, initialMetadata);
 
@@ -30,6 +33,8 @@ export class AssetService {
         topicId: topicId,
       });
 
+      console.log('Asset:', asset);
+
       this.assets.push(asset);
 
       // Registrar evento de criação no HCS
@@ -39,6 +44,7 @@ export class AssetService {
         timestamp: new Date().toISOString(),
         details: { ...createAssetDto }
       };
+
       await this.hederaService.submitMessage(topicId, JSON.stringify(createEvent));
 
       return asset;
@@ -48,15 +54,8 @@ export class AssetService {
     }
   }
 
-  async createAssetEvent(assetId: string, event: any): Promise<void> {
-    // hedera service to submit message
+  async createAssetEvent(topicId: string, event: any): Promise<void> {
     try {
-      const asset = this.assets.find((a) => a.id === assetId);
-      if (!asset) {
-        throw new NotFoundException(`Asset with ID ${assetId} not found`);
-      }
-
-      const { topicId } = asset;
       await this.hederaService.submitMessage(topicId, JSON.stringify(event));
     } catch (error) {
       console.error('Error creating asset event', error);
@@ -81,10 +80,10 @@ export class AssetService {
     }
   }
 
-  async getAssetById(id: string): Promise<Asset> {
-    // get from hedera service
+  // async getAssetById(id: string): Promise<Asset> {
+  //   // get from hedera service
 
-  }
+  // }
 
   async getNFTInfo(tokenId: string): Promise<any> {
     return this.hederaService.getNFTInfo(tokenId);

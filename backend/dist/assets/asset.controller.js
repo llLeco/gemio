@@ -16,9 +16,11 @@ exports.AssetController = void 0;
 const common_1 = require("@nestjs/common");
 const asset_service_1 = require("./asset.service");
 const create_asset_dto_1 = require("../models/create-asset.dto");
+const hedera_service_1 = require("../hedera/hedera.service");
 let AssetController = class AssetController {
-    constructor(assetService) {
+    constructor(assetService, hederaService) {
         this.assetService = assetService;
+        this.hederaService = hederaService;
     }
     async createAsset(createAssetDto) {
         return this.assetService.createAsset(createAssetDto);
@@ -31,11 +33,7 @@ let AssetController = class AssetController {
         return this.assetService.getAssetEvents(id, startDate);
     }
     async getAssetDetails(id) {
-        console.log('Getting asset details for ID', id);
-        const asset = await this.assetService.getAssetById(id);
-        console.log('Asset:', asset);
-        const nftInfo = await this.assetService.getNFTInfo(asset.id);
-        return Object.assign(Object.assign({}, asset), { nftInfo });
+        return this.hederaService.getFileContents(id);
     }
 };
 exports.AssetController = AssetController;
@@ -71,6 +69,7 @@ __decorate([
 ], AssetController.prototype, "getAssetDetails", null);
 exports.AssetController = AssetController = __decorate([
     (0, common_1.Controller)('assets'),
-    __metadata("design:paramtypes", [asset_service_1.AssetService])
+    __metadata("design:paramtypes", [asset_service_1.AssetService,
+        hedera_service_1.HederaService])
 ], AssetController);
 //# sourceMappingURL=asset.controller.js.map

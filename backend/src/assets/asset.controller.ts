@@ -5,7 +5,10 @@ import { HederaService } from '../hedera/hedera.service';
 
 @Controller('assets')
 export class AssetController {
-  constructor(private readonly assetService: AssetService) {}
+  constructor(
+    private readonly assetService: AssetService,
+    private readonly hederaService: HederaService
+  ) {}
 
   @Post()
   async createAsset(@Body() createAssetDto: CreateAssetDto) {
@@ -25,19 +28,7 @@ export class AssetController {
 
   @Get(':id/details')
   async getAssetDetails(@Param('id') id: string) {
-    console.log('Getting asset details for ID', id);
-    const asset = await this.assetService.getAssetById(id);
-    console.log('Asset:', asset);
-    const nftInfo = await this.assetService.getNFTInfo(asset.id);
-    // const metadataHistory = await this.assetService.getAssetMetadataHistory(asset.metadataFileId);
-    // const eventHistory = await this.assetService.getAssetEvents(id);
-
-    return {
-      ...asset,
-      nftInfo,
-      // metadataHistory,
-      // eventHistory
-    };
+    return this.hederaService.getFileContents(id);
   }
 
   // @Get()

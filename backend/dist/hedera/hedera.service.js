@@ -18,14 +18,13 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const cache_manager_1 = require("@nestjs/cache-manager");
 const common_2 = require("@nestjs/common");
-const operators_1 = require("rxjs/operators");
-const rxjs_1 = require("rxjs");
 const sdk_1 = require("@hashgraph/sdk");
 let HederaService = HederaService_1 = class HederaService {
     constructor(cacheManager, configService) {
         this.cacheManager = cacheManager;
         this.configService = configService;
         this.logger = new common_1.Logger(HederaService_1.name);
+        this.MAX_METADATA_SIZE = 100;
     }
     async onModuleInit() {
         await this.initializeClient();
@@ -170,17 +169,42 @@ let HederaService = HederaService_1 = class HederaService {
         this.logger.log(`Created NFT with Token ID: ${tokenId}`);
         return tokenId.toString();
     }
-    async mintNFT(tokenId, metadata) {
-        const supplyKey = sdk_1.PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY'));
-        const mintTx = await new sdk_1.TokenMintTransaction()
-            .setTokenId(tokenId)
-            .setMetadata([Buffer.from(metadata)])
+    async mintNFT(collectionId, metadata) {
+        try {
+            const supplyKey = sdk_1.PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY'));
+            const fileId = await this.createImmutableFile(metadata);
+            const mintTx = await new sdk_1.TokenMintTransaction()
+                .setTokenId(collectionId)
+                .setMetadata([Buffer.from(fileId.toString())])
+                .freezeWith(this.client);
+            const mintTxSign = await mintTx.sign(supplyKey);
+            const mintTxSubmit = await this.executeWithRetry(() => mintTxSign.execute(this.client));
+            const mintRx = await mintTxSubmit.getReceipt(this.client);
+            const serialNumber = mintRx.serials[0].low.toString();
+            this.logger.log(`NFT criado ${collectionId} com serial: ${serialNumber}, referenciando arquivo: ${fileId}`);
+            return serialNumber;
+        }
+        catch (error) {
+            this.logger.error(`Erro ao criar NFT ${collectionId}:`, error);
+            throw error;
+        }
+    }
+    async createImmutableFile(content) {
+        const fileCreateTx = new sdk_1.FileCreateTransaction()
+            .setKeys([])
+            .setContents(JSON.stringify(content))
+            .setMaxTransactionFee(1)
             .freezeWith(this.client);
-        const mintTxSign = await mintTx.sign(supplyKey);
-        const mintTxSubmit = await this.executeWithRetry(() => mintTxSign.execute(this.client));
-        const mintRx = await mintTxSubmit.getReceipt(this.client);
-        this.logger.log(`Created NFT ${tokenId} with serial: ${mintRx.serials[0].low}`);
-        return mintRx.serials[0].low.toString();
+        const signedTx = await fileCreateTx.sign(sdk_1.PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY')));
+        const submitTx = await signedTx.execute(this.client);
+        const receipt = await submitTx.getReceipt(this.client);
+        return receipt.fileId.toString();
+    }
+    async getFileContents(fileId) {
+        const query = new sdk_1.FileContentsQuery()
+            .setFileId(fileId);
+        const contents = await query.execute(this.client);
+        return JSON.parse(contents.toString());
     }
     async getNFTInfo(tokenId) {
         const cacheKey = `nftInfo:${tokenId}`;
@@ -211,11 +235,17 @@ let HederaService = HederaService_1 = class HederaService {
         return receipt.topicId.toString();
     }
     async submitMessage(topicId, message) {
-        const transaction = await new sdk_1.TopicMessageSubmitTransaction({ topicId, message, }).freezeWith(this.client);
-        const signTx = await transaction.sign(sdk_1.PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY')));
-        const txResponse = await this.executeWithRetry(() => signTx.execute(this.client));
-        const receipt = await txResponse.getReceipt(this.client);
-        return receipt.status.toString();
+        try {
+            const transaction = await new sdk_1.TopicMessageSubmitTransaction({ topicId, message, }).freezeWith(this.client);
+            const signTx = await transaction.sign(sdk_1.PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY')));
+            const txResponse = await this.executeWithRetry(() => signTx.execute(this.client));
+            const receipt = await txResponse.getReceipt(this.client);
+            return receipt.status.toString();
+        }
+        catch (error) {
+            this.logger.error(`Error submitting message to topic ${topicId}:`, error);
+            throw error;
+        }
     }
     async getMessages(topicId, startTime, messageCount, timeout) {
         return new Promise((resolve, reject) => {
@@ -243,14 +273,19 @@ let HederaService = HederaService_1 = class HederaService {
             }, timeout);
         });
     }
-    executeWithRetry(operation) {
-        return (0, rxjs_1.from)(operation()).pipe((0, operators_1.retry)({
-            count: 3,
-            delay: (error, retryCount) => {
-                this.logger.log(`Retrying operation. Attempt ${retryCount}`);
-                return (0, rxjs_1.timer)(1000 * retryCount);
+    async executeWithRetry(operation, maxRetries = 3, delay = 1000) {
+        let lastError;
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                return await operation();
             }
-        })).toPromise();
+            catch (error) {
+                lastError = error;
+                this.logger.warn(`Attempt ${attempt} failed. Retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+        throw lastError;
     }
 };
 exports.HederaService = HederaService;

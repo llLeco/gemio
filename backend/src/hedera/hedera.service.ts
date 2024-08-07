@@ -3,8 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { Inject } from '@nestjs/common';
-import { retry } from 'rxjs/operators';
-import { from, timer } from 'rxjs';
+import * as zlib from 'zlib';
 import {
   Client,
   AccountId,
@@ -40,6 +39,7 @@ export class HederaService implements OnModuleInit, OnModuleDestroy {
   private client: Client;
   private network: string;
   private topicId: TopicId;
+  private readonly MAX_METADATA_SIZE = 100;
 
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -200,21 +200,6 @@ export class HederaService implements OnModuleInit, OnModuleDestroy {
     return transactionReceipt.status.toString();
   }
 
-  // async testConnection(): Promise<{ networkName: string; accountId: string }> {
-  //   try {
-  //     const accountId = this.client.operatorAccountId;
-  //     const query = new AccountInfoQuery().setAccountId(accountId);
-  //     const accountInfo = await this.executeWithRetry(() => query.execute(this.client));
-
-  //     return {
-  //       networkName: this.network,
-  //       accountId: accountInfo.accountId.toString(),
-  //     };
-  //   } catch (error) {
-  //     throw new Error(`Falha na conexão com a Hedera: ${error.message}`);
-  //   }
-  // }
-
   async createNFTCollection(name: string, symbol: string): Promise<string> {
     // const cacheKey = `nftCollection:${name}:${symbol}`;
     // const cachedTokenId = await this.cacheManager.get<string>(cacheKey);
@@ -248,21 +233,52 @@ export class HederaService implements OnModuleInit, OnModuleDestroy {
     return tokenId.toString();
   }
 
-  async mintNFT(tokenId: string, metadata: any): Promise<string> {
-    const supplyKey = PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY'));
+  async mintNFT(collectionId: string, metadata: any): Promise<string> {
+    try {
+      const supplyKey = PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY'));
 
-    const mintTx = await new TokenMintTransaction()
-      .setTokenId(tokenId)
-      .setMetadata([Buffer.from(metadata)])
+      // Cria um arquivo imutável com os metadados
+      const fileId = await this.createImmutableFile(metadata);
+
+      const mintTx = await new TokenMintTransaction()
+        .setTokenId(collectionId)
+        .setMetadata([Buffer.from(fileId.toString())])
+        .freezeWith(this.client);
+
+      const mintTxSign = await mintTx.sign(supplyKey);
+      const mintTxSubmit = await this.executeWithRetry(() => mintTxSign.execute(this.client));
+      const mintRx = await mintTxSubmit.getReceipt(this.client);
+
+      const serialNumber = mintRx.serials[0].low.toString();
+      this.logger.log(`NFT criado ${collectionId} com serial: ${serialNumber}, referenciando arquivo: ${fileId}`);
+
+      return serialNumber;
+    } catch (error) {
+      this.logger.error(`Erro ao criar NFT ${collectionId}:`, error);
+      throw error;
+    }
+  }
+
+  private async createImmutableFile(content: any): Promise<string> {
+    const fileCreateTx = new FileCreateTransaction()
+      .setKeys([]) // Sem chaves significa que o arquivo é imutável
+      .setContents(JSON.stringify(content))
+      .setMaxTransactionFee(1)
       .freezeWith(this.client);
 
-    const mintTxSign = await mintTx.sign(supplyKey);
-    const mintTxSubmit = await this.executeWithRetry(() => mintTxSign.execute(this.client));
-    const mintRx = await mintTxSubmit.getReceipt(this.client);
+    const signedTx = await fileCreateTx.sign(PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY')));
+    const submitTx = await signedTx.execute(this.client);
+    const receipt = await submitTx.getReceipt(this.client);
 
-    this.logger.log(`Created NFT ${tokenId} with serial: ${mintRx.serials[0].low}`);
+    return receipt.fileId!.toString();
+  }
 
-    return mintRx.serials[0].low.toString();
+  async getFileContents(fileId: string): Promise<any> {
+    const query = new FileContentsQuery()
+      .setFileId(fileId);
+
+    const contents = await query.execute(this.client);
+    return JSON.parse(contents.toString());
   }
 
   async getNFTInfo(tokenId: string): Promise<any> {
@@ -367,13 +383,18 @@ export class HederaService implements OnModuleInit, OnModuleDestroy {
   }
 
   async submitMessage(topicId: string, message: string): Promise<string> {
-    const transaction = await new TopicMessageSubmitTransaction({ topicId, message, }).freezeWith(this.client);
+    try {
+      const transaction = await new TopicMessageSubmitTransaction({ topicId, message, }).freezeWith(this.client);
 
-    const signTx = await transaction.sign(PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY')));
-    const txResponse = await this.executeWithRetry(() => signTx.execute(this.client));
-    const receipt = await txResponse.getReceipt(this.client);
+      const signTx = await transaction.sign(PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY')));
+      const txResponse = await this.executeWithRetry(() => signTx.execute(this.client));
+      const receipt = await txResponse.getReceipt(this.client);
 
-    return receipt.status.toString();
+      return receipt.status.toString();
+    } catch (error) {
+      this.logger.error(`Error submitting message to topic ${topicId}:`, error);
+      throw error;
+    }
   }
 
   async getMessages(topicId, startTime, messageCount, timeout) {
@@ -407,15 +428,21 @@ export class HederaService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  private executeWithRetry<T>(operation: () => Promise<T>): Promise<T> {
-    return from(operation()).pipe(
-      retry({
-        count: 3,
-        delay: (error, retryCount) => {
-          this.logger.log(`Retrying operation. Attempt ${retryCount}`);
-          return timer(1000 * retryCount);
-        }
-      })
-    ).toPromise();
+  private async executeWithRetry<T>(
+    operation: () => Promise<T>,
+    maxRetries = 3,
+    delay = 1000
+  ): Promise<T> {
+    let lastError;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error;
+        this.logger.warn(`Attempt ${attempt} failed. Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+    throw lastError;
   }
 }
