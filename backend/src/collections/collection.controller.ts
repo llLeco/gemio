@@ -28,18 +28,8 @@ export class CollectionController {
     return this.collectionService.getCollection(id);
   }
 
-  // @Post(':id/assets')
-  // async createAsset(@Param('id') collectionId: string, @Body() assetData: Partial<Asset>): Promise<Asset> {
-  //   return this.collectionService.createAsset(collectionId, assetData);
-  // }
-
   @Get(':id/assets')
   async getAssetsInCollection(@Param('id') collectionId: string): Promise<Asset[]> {
     return this.collectionService.getAssetsInCollection(collectionId);
   }
-
-  // @Put('assets/:id')
-  // async updateAssetMetadata(@Param('id') assetId: string, @Body() newMetadata: any): Promise<void> {
-  //   await this.collectionService.updateAssetMetadata(assetId, newMetadata);
-  // }
 }

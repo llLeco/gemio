@@ -12,8 +12,6 @@ export class AssetService {
   async createAsset(createAssetDto: CreateAssetDto): Promise<Asset> {
     try {
 
-      console.log('Creating asset:', createAssetDto);
-
       const topicId = await this.hederaService.createTopic(createAssetDto);
       console.log('Topic ID:', topicId);
 
@@ -22,7 +20,6 @@ export class AssetService {
         timestamp: new Date().toISOString(),
         topicId: topicId
       };
-      console.log('Initial metadata:', initialMetadata);
 
       const serialNumber = await this.hederaService.mintNFT(createAssetDto.collectionId, initialMetadata);
 
@@ -32,8 +29,6 @@ export class AssetService {
         collectionId: createAssetDto.collectionId,
         topicId: topicId,
       });
-
-      console.log('Asset:', asset);
 
       this.assets.push(asset);
 
@@ -79,11 +74,6 @@ export class AssetService {
       throw error;
     }
   }
-
-  // async getAssetById(id: string): Promise<Asset> {
-  //   // get from hedera service
-
-  // }
 
   async getNFTInfo(tokenId: string): Promise<any> {
     return this.hederaService.getNFTInfo(tokenId);

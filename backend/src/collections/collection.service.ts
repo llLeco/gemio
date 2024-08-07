@@ -43,21 +43,7 @@ export class CollectionService {
     };
 }
 
-  // async createAsset(collectionId: string, assetData: Partial<Asset>): Promise<Asset> {
-  //   const metadata = JSON.stringify(assetData);
-  //   const serialNumber = await this.hederaService.mintNFT(collectionId, metadata);
-  //   // const metadataFileId = await this.hederaService.createFile(metadata);
-
-  //   return new Asset({
-  //     ...assetData,
-  //     id: `${collectionId}:${serialNumber}`,
-  //     tokenId: collectionId,
-  //     // metadataFileId
-  //   });
-  // }
-
   async getAssetsInCollection(collectionId: string): Promise<any> {
-    // call hedera service to get all NFTs in collection
     try {
       const nfts = await this.hederaService.getNFTsInCollection(collectionId);
       return nfts;
@@ -66,22 +52,4 @@ export class CollectionService {
       throw error;
     }
   }
-
-  // async updateAssetMetadata(assetId: string, newMetadata: any): Promise<void> {
-  //   const [collectionId, serialNumber] = assetId.split(':');
-  //   const asset = await this.getAssetById(assetId);
-
-  //   if (!asset) {
-  //     throw new Error('Asset not found');
-  //   }
-
-  //   const updatedMetadata = JSON.stringify({ ...JSON.parse(await this.hederaService.getFileContents(asset.metadataFileId)), ...newMetadata });
-  //   await this.hederaService.updateFile(asset.metadataFileId, updatedMetadata);
-  // }
-
-  // private async getAssetById(assetId: string): Promise<Asset | null> {
-  //   // Implementação pendente: precisamos adicionar um método no HederaService para buscar um NFT específico
-  //   // Por enquanto, retornamos null
-  //   return null;
-  // }
 }

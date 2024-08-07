@@ -1,9 +1,5 @@
 import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
-import { Inject } from '@nestjs/common';
-import * as zlib from 'zlib';
 import {
   Client,
   AccountId,
@@ -20,14 +16,10 @@ import {
   TokenType,
   FileContentsQuery,
   FileCreateTransaction,
-  FileId,
-  FileUpdateTransaction,
-  FileAppendTransaction,
   TopicMessageQuery,
   TopicId,
   TopicMessageSubmitTransaction,
   TopicCreateTransaction,
-  Timestamp,
   TokenId,
   TokenNftInfoQuery,
   NftId,
@@ -37,18 +29,13 @@ import {
 export class HederaService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(HederaService.name);
   private client: Client;
-  private network: string;
-  private topicId: TopicId;
-  private readonly MAX_METADATA_SIZE = 100;
 
   constructor(
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private configService: ConfigService
   ) { }
 
   async onModuleInit() {
     await this.initializeClient();
-    // await this.initializeTopic();
   }
 
   async onModuleDestroy() {
@@ -201,12 +188,6 @@ export class HederaService implements OnModuleInit, OnModuleDestroy {
   }
 
   async createNFTCollection(name: string, symbol: string): Promise<string> {
-    // const cacheKey = `nftCollection:${name}:${symbol}`;
-    // const cachedTokenId = await this.cacheManager.get<string>(cacheKey);
-    // if (cachedTokenId) {
-    //   return cachedTokenId;
-    // }
-
     const treasuryAccountId = AccountId.fromString(this.configService.get('HEDERA_ACCOUNT_ID'));
     const treasuryKey = PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY'));
 
@@ -229,7 +210,6 @@ export class HederaService implements OnModuleInit, OnModuleDestroy {
 
     this.logger.log(`Created NFT with Token ID: ${tokenId}`);
 
-    // await this.cacheManager.set(cacheKey, tokenId.toString(), 0);
     return tokenId.toString();
   }
 
@@ -282,12 +262,6 @@ export class HederaService implements OnModuleInit, OnModuleDestroy {
   }
 
   async getNFTInfo(tokenId: string): Promise<any> {
-    const cacheKey = `nftInfo:${tokenId}`;
-    const cachedInfo = await this.cacheManager.get(cacheKey);
-    if (cachedInfo) {
-      return cachedInfo;
-    }
-
     const query = new TokenInfoQuery().setTokenId(tokenId);
     const tokenInfo = await this.executeWithRetry(() => query.execute(this.client));
 
@@ -298,76 +272,8 @@ export class HederaService implements OnModuleInit, OnModuleDestroy {
       maxSupply: tokenInfo.maxSupply.toString(),
     };
 
-    await this.cacheManager.set(cacheKey, info, 300000);
     return info;
   }
-
-  // async createFile(contents: string): Promise<string> {
-  //   const transaction = new FileCreateTransaction()
-  //     .setKeys([PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY'))])
-  //     .setContents(contents)
-  //     .setMaxTransactionFee(new Hbar(2))
-  //     .freezeWith(this.client);
-
-  //   const signTx = await transaction.sign(PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY')));
-  //   const submitTx = await this.executeWithRetry(() => signTx.execute(this.client));
-  //   const receipt = await submitTx.getReceipt(this.client);
-  //   const fileId = receipt.fileId;
-
-  //   this.logger.log(`The file ID is: ${fileId}`);
-  //   return fileId.toString();
-  // }
-
-  // async updateFile(fileId: string, newContents: string): Promise<void> {
-  //   const transaction = await new FileUpdateTransaction()
-  //     .setFileId(FileId.fromString(fileId))
-  //     .setContents(newContents)
-  //     .setMaxTransactionFee(new Hbar(2))
-  //     .freezeWith(this.client);
-
-  //   const signTx = await transaction.sign(PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY')));
-  //   const submitTx = await this.executeWithRetry(() => signTx.execute(this.client));
-  //   await submitTx.getReceipt(this.client);
-
-  //   this.logger.log(`The file ${fileId} was updated`);
-  // }
-
-  // async getFileContents(fileId: string): Promise<string> {
-  //   const query = new FileContentsQuery().setFileId(FileId.fromString(fileId));
-  //   const contents = await this.executeWithRetry(() => query.execute(this.client));
-  //   return contents.toString();
-  // }
-
-  // async appendToFile(fileId: string, newContents: string): Promise<void> {
-  //   const transaction = await new FileAppendTransaction()
-  //     .setFileId(FileId.fromString(fileId))
-  //     .setContents(newContents)
-  //     .setMaxTransactionFee(new Hbar(2))
-  //     .freezeWith(this.client);
-
-  //   const signTx = await transaction.sign(PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY')));
-  //   const submitTx = await this.executeWithRetry(() => signTx.execute(this.client));
-  //   await submitTx.getReceipt(this.client);
-
-  //   this.logger.log(`The file ${fileId} was appended`);
-  // }
-
-  // async initializeTopic() {
-  //   const cachedTopicId = await this.cacheManager.get<string>('hederaTopicId');
-  //   if (cachedTopicId) {
-  //     this.topicId = TopicId.fromString(cachedTopicId);
-  //     return;
-  //   }
-
-  //   if (this.configService.get('HEDERA_TOPIC_ID')) {
-  //     this.topicId = TopicId.fromString(this.configService.get('HEDERA_TOPIC_ID'));
-  //   } else {
-  //     this.topicId = await this.createTopic();
-  //     this.logger.log(`New topic created: ${this.topicId}`);
-  //   }
-
-  //   await this.cacheManager.set('hederaTopicId', this.topicId.toString(), 0);
-  // }
 
   async createTopic(assetData: any): Promise<string> {
     const transaction = new TopicCreateTransaction()

@@ -1,9 +1,7 @@
 import { Controller, Post, Get, Body, Param, Query } from '@nestjs/common';
 import { HederaService } from './hedera.service';
-// import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('hedera')
-// @UseGuards(JwtAuthGuard)
 export class HederaController {
   constructor(private readonly hederaService: HederaService) {}
 
@@ -25,11 +23,6 @@ export class HederaController {
   ) {
     return this.hederaService.transferHbar(from, to, amount);
   }
-
-  // @Get('test-connection')
-  // async testConnection() {
-  //   return this.hederaService.testConnection();
-  // }
 
   @Post('nft/collection')
   async createNFTCollection(@Body() body: { name: string; symbol: string }) {
