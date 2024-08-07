@@ -7,15 +7,13 @@ dotenv.config();
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Configuração CORS mais específica
   app.enableCors({
     origin: process.env.ALLOWED_ORIGINS || 'https://gemio.vercel.app',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
 
-  // Use a porta fornecida pelo ambiente ou 3000 como fallback
   const port = process.env.PORT || 3000;
   await app.listen(port);
 

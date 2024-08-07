@@ -1,15 +1,16 @@
 {
   "version": 2,
   "builds": [
-    { "src": "backend/src/main.ts", "use": "@vercel/node" },
     {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "dist/gemio" }
+      "src": "backend/src/main.ts",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "backend/src/main.ts" },
-    { "src": "/(.*)", "dest": "/dist/gemio/$1" }
+    {
+      "src": "/(.*)",
+      "dest": "backend/src/main.ts",
+      "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
+    }
   ]
 }
