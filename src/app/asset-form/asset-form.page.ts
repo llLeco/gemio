@@ -196,15 +196,15 @@ export class AssetFormPage implements OnInit {
   }
 
   async onSubmit() {
-    if (this.assetForm.valid) {
+    if (this.assetForm.valid && this.collectionId) {
       const assetData: IliotAsset = {
         machine: this.assetForm.value
       };
-      assetData.machine.id = this.collectionId ? this.collectionId : undefined;
+      assetData.machine.id = this.collectionId;
 
       try {
         await this.errorHandler.showLoading('Creating asset...');
-        await this.assetService.createAsset(assetData);
+        await this.assetService.createAsset(this.collectionId, assetData);
         this.errorHandler.showToast('Asset created successfully');
         await this.errorHandler.hideLoading();
         this.router.navigate(['/dashboard']);

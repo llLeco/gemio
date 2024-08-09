@@ -5,7 +5,10 @@ export declare class AssetController {
     private readonly assetService;
     private readonly hederaService;
     constructor(assetService: AssetService, hederaService: HederaService);
-    createAsset(createAssetDto: CreateAssetDto): Promise<import("../models/asset.model").Asset>;
+    createAsset(createAsset: {
+        collectionId: string;
+        assetData: CreateAssetDto;
+    }): Promise<import("../models/asset.model").Asset>;
     createAssetEvent(id: string, event: any): Promise<void>;
     getAssetEvents(id: string, startTime: string): Promise<any>;
     getAssetDetails(id: string): Promise<any>;

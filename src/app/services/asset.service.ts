@@ -47,12 +47,12 @@ export class AssetService {
     }
   }
 
-  async createAsset(assetData: any): Promise<any> {
+  async createAsset(collectionId: string, assetData: any): Promise<any> {
 
     console.log('Creating asset', assetData);
 
     try {
-      const response = await axios.post(this.apiUrl, assetData, { headers: this.getHeaders() });
+      const response = await axios.post(this.apiUrl, {collectionId, assetData}, { headers: this.getHeaders() });
       return response.data;
     } catch (error) {
       console.error('Error creating asset', error);

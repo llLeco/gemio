@@ -11,8 +11,8 @@ export class AssetController {
   ) {}
 
   @Post()
-  async createAsset(@Body() createAssetDto: CreateAssetDto) {
-    return this.assetService.createAsset(createAssetDto);
+  async createAsset(@Body() createAsset: {collectionId: string, assetData: CreateAssetDto}) {
+    return this.assetService.createAsset(createAsset.collectionId, createAsset.assetData);
   }
 
   @Post(':id/events')

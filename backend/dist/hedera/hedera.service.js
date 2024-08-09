@@ -165,6 +165,7 @@ let HederaService = HederaService_1 = class HederaService {
     }
     async mintNFT(collectionId, metadata) {
         try {
+            console.log('Minting NFT with metadata:', metadata, 'for collection:', collectionId);
             const supplyKey = sdk_1.PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY'));
             const fileId = await this.createImmutableFile(metadata);
             const mintTx = await new sdk_1.TokenMintTransaction()

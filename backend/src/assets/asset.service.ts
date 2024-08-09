@@ -23,44 +23,36 @@ export class AssetService {
 
   constructor(private readonly hederaService: HederaService) {}
 
-  async createAsset(createAssetDto: CreateAssetDto): Promise<Asset> {
+  async createAsset(collectionId: string, createAsset: CreateAssetDto): Promise<Asset> {
     try {
       // Ensure createAssetDto is not undefined
-      if (!createAssetDto) {
+      if (!createAsset) {
         throw new BadRequestException('Asset data is required');
       }
 
+      console.log('Creating asset', createAsset);
+
       // Create a topic for the asset
-      const topicId = await this.hederaService.createTopic(createAssetDto);
+      const topicId = await this.hederaService.createTopic(createAsset);
       console.log('Topic ID:', topicId);
 
       // Prepare initial metadata
       const initialMetadata = {
-        data: createAssetDto,
+        asset: createAsset,
         timestamp: new Date().toISOString(),
         topicId: topicId
       };
 
       // Mint NFT
-      const serialNumber = await this.hederaService.mintNFT(createAssetDto.collectionId, initialMetadata);
+      const serialNumber = await this.hederaService.mintNFT(collectionId, initialMetadata);
 
       // Create asset object
       const asset = new Asset({
-        ...createAssetDto,
-        id: `${createAssetDto.collectionId}:${serialNumber}`,
-        collectionId: createAssetDto.collectionId,
+        ...createAsset,
+        id: `${collectionId}:${serialNumber}`,
+        collectionId: collectionId,
         topicId: topicId,
       });
-
-      // Register creation event
-      const createEvent = {
-        type: 'ASSET_CREATED',
-        assetId: asset.id,
-        timestamp: new Date().toISOString(),
-        details: { ...createAssetDto }
-      };
-
-      await this.hederaService.submitMessage(topicId, JSON.stringify(createEvent));
 
       return asset;
     } catch (error) {

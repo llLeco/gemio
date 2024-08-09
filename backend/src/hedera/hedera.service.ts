@@ -214,6 +214,7 @@ export class HederaService implements OnModuleInit, OnModuleDestroy {
 
   async mintNFT(collectionId: string, metadata: any): Promise<string> {
     try {
+      console.log('Minting NFT with metadata:', metadata, 'for collection:', collectionId);
       const supplyKey = PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY'));
 
       // Cria um arquivo imutável com os metadados

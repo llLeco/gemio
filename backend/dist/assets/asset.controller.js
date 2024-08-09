@@ -15,15 +15,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AssetController = void 0;
 const common_1 = require("@nestjs/common");
 const asset_service_1 = require("./asset.service");
-const create_asset_dto_1 = require("../models/create-asset.dto");
 const hedera_service_1 = require("../hedera/hedera.service");
 let AssetController = class AssetController {
     constructor(assetService, hederaService) {
         this.assetService = assetService;
         this.hederaService = hederaService;
     }
-    async createAsset(createAssetDto) {
-        return this.assetService.createAsset(createAssetDto);
+    async createAsset(createAsset) {
+        return this.assetService.createAsset(createAsset.collectionId, createAsset.assetData);
     }
     async createAssetEvent(id, event) {
         return this.assetService.createAssetEvent(id, event);
@@ -41,7 +40,7 @@ __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_asset_dto_1.CreateAssetDto]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AssetController.prototype, "createAsset", null);
 __decorate([
