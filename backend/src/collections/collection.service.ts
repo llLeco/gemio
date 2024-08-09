@@ -19,7 +19,7 @@ export class CollectionService {
   }
 
   async getCollection(collectionId: string): Promise<Collection> {
-    const info = await this.hederaService.getNFTInfo(collectionId);
+    const info = await this.hederaService.getCollectionInfo(collectionId);
     return new Collection({
       id: collectionId,
       name: info.name,

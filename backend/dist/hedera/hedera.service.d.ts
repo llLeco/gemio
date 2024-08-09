@@ -22,7 +22,8 @@ export declare class HederaService implements OnModuleInit, OnModuleDestroy {
     mintNFT(collectionId: string, metadata: any): Promise<string>;
     private createImmutableFile;
     getFileContents(fileId: string): Promise<any>;
-    getNFTInfo(tokenId: string): Promise<any>;
+    getCollectionInfo(tokenId: string): Promise<any>;
+    getNFTInfo(tokenId: string, serialNumber: string): Promise<any>;
     createTopic(assetData: any): Promise<string>;
     submitMessage(topicId: string, message: string): Promise<string>;
     getMessages(topicId: any, startTime: any, messageCount: any, timeout: any): Promise<unknown>;

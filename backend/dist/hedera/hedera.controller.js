@@ -34,8 +34,8 @@ let HederaController = class HederaController {
     async mintNFT(body) {
         return this.hederaService.mintNFT(body.tokenId, body.metadata);
     }
-    async getNFTInfo(tokenId) {
-        return this.hederaService.getNFTInfo(tokenId);
+    async getCollectionInfo(tokenId) {
+        return this.hederaService.getCollectionInfo(tokenId);
     }
     async getMessages(topicId, startTime) {
         return this.hederaService.getMessages(topicId, new Date(startTime), 10, 1000);
@@ -79,12 +79,12 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], HederaController.prototype, "mintNFT", null);
 __decorate([
-    (0, common_1.Get)('nft/:tokenId'),
-    __param(0, (0, common_1.Param)('tokenId')),
+    (0, common_1.Get)('colleciton/:id'),
+    __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
-], HederaController.prototype, "getNFTInfo", null);
+], HederaController.prototype, "getCollectionInfo", null);
 __decorate([
     (0, common_1.Get)('messages'),
     __param(0, (0, common_1.Query)('topicId')),

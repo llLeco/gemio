@@ -12,4 +12,5 @@ export declare class AssetController {
     createAssetEvent(id: string, event: any): Promise<void>;
     getAssetEvents(id: string, startTime: string): Promise<any>;
     getAssetDetails(id: string): Promise<any>;
+    getIliotAsset(assetId: string): Promise<any>;
 }

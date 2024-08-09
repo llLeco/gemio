@@ -201,16 +201,44 @@ let HederaService = HederaService_1 = class HederaService {
         const contents = await query.execute(this.client);
         return JSON.parse(contents.toString());
     }
-    async getNFTInfo(tokenId) {
-        const query = new sdk_1.TokenInfoQuery().setTokenId(tokenId);
-        const tokenInfo = await this.executeWithRetry(() => query.execute(this.client));
-        const info = {
-            name: tokenInfo.name,
-            symbol: tokenInfo.symbol,
-            totalSupply: tokenInfo.totalSupply.toString(),
-            maxSupply: tokenInfo.maxSupply.toString(),
-        };
-        return info;
+    async getCollectionInfo(tokenId) {
+        try {
+            const query = new sdk_1.TokenInfoQuery().setTokenId(sdk_1.TokenId.fromString(tokenId));
+            const tokenInfo = await this.executeWithRetry(() => query.execute(this.client));
+            return {
+                tokenId: tokenId,
+                name: tokenInfo.name,
+                symbol: tokenInfo.symbol,
+                totalSupply: tokenInfo.totalSupply.toString(),
+                maxSupply: tokenInfo.maxSupply.toString(),
+            };
+        }
+        catch (error) {
+            console.error(`Error fetching collection info for token ${tokenId}:`, error);
+            throw error;
+        }
+    }
+    async getNFTInfo(tokenId, serialNumber) {
+        try {
+            const nftId = new sdk_1.NftId(sdk_1.TokenId.fromString(tokenId), serialNumber);
+            const nftInfo = await new sdk_1.TokenNftInfoQuery()
+                .setNftId(nftId)
+                .execute(this.client);
+            if (nftInfo.length === 0) {
+                throw new Error('NFT not found');
+            }
+            return {
+                tokenId: nftInfo[0].nftId.tokenId.toString(),
+                serialNumber: nftInfo[0].nftId.serial.toString(),
+                owner: nftInfo[0].accountId.toString(),
+                metadata: nftInfo[0].metadata,
+                creationTime: nftInfo[0].creationTime.toDate(),
+            };
+        }
+        catch (error) {
+            console.error(`Error fetching NFT info for token ${tokenId} and serial ${serialNumber}:`, error);
+            throw error;
+        }
     }
     async createTopic(assetData) {
         const transaction = new sdk_1.TopicCreateTransaction()

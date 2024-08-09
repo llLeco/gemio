@@ -89,12 +89,48 @@ export class AssetService {
     }
   }
 
-  async getNFTInfo(tokenId: string): Promise<any> {
+  async getCollectionInfo(collectionId: string): Promise<any> {
     try {
-      return await this.hederaService.getNFTInfo(tokenId);
+      return await this.hederaService.getCollectionInfo(collectionId);
     } catch (error) {
-      console.error(`Error fetching NFT info for token ID ${tokenId}`, error);
-      throw new BadRequestException(`Failed to fetch NFT info: ${error.message}`);
+      console.error(`Error fetching collection info for ID ${collectionId}`, error);
+      throw new BadRequestException(`Failed to fetch collection info: ${error.message}`);
+    }
+  }
+
+  async getIliotAsset(assetId: string): Promise<any> {
+    try {
+      const [collectionId, serialNumber] = assetId.split(':');
+
+      if (!collectionId || !serialNumber) {
+        throw new BadRequestException('Invalid asset ID format');
+      }
+
+      const nftInfo = await this.hederaService.getNFTInfo(collectionId, serialNumber);
+
+      if (!nftInfo || !nftInfo.metadata) {
+        throw new NotFoundException(`Asset with ID ${assetId} not found`);
+      }
+
+      const fileId = Buffer.from(nftInfo.metadata).toString('utf8');
+
+      if (!fileId) {
+        throw new BadRequestException('Asset metadata file ID is invalid or missing');
+      }
+
+      const fileContents = await this.hederaService.getFileContents(fileId);
+
+      if (!fileContents || !fileContents.asset) {
+        throw new BadRequestException('Asset data is invalid or missing');
+      }
+
+      return fileContents.asset;
+    } catch (error) {
+      console.error(`Error fetching Iliot asset with ID ${assetId}`, error);
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(`Failed to fetch Iliot asset: ${error.message}`);
     }
   }
 }

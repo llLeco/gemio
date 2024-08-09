@@ -30,4 +30,10 @@ export class AssetController {
   async getAssetDetails(@Param('id') id: string) {
     return this.hederaService.getFileContents(id);
   }
+
+  // get nft collectionId:serialNumber and return file metadata.asset
+  @Get(':id')
+  async getIliotAsset(@Param('id') assetId: string) {
+    return this.assetService.getIliotAsset(assetId);
+  }
 }

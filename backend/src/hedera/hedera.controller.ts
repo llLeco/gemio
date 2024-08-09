@@ -34,9 +34,9 @@ export class HederaController {
     return this.hederaService.mintNFT(body.tokenId, body.metadata);
   }
 
-  @Get('nft/:tokenId')
-  async getNFTInfo(@Param('tokenId') tokenId: string) {
-    return this.hederaService.getNFTInfo(tokenId);
+  @Get('colleciton/:id')
+  async getCollectionInfo(@Param('id') tokenId: string) {
+    return this.hederaService.getCollectionInfo(tokenId);
   }
 
   @Get('messages')

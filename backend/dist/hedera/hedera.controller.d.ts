@@ -16,6 +16,6 @@ export declare class HederaController {
         tokenId: string;
         metadata: string;
     }): Promise<string>;
-    getNFTInfo(tokenId: string): Promise<any>;
+    getCollectionInfo(tokenId: string): Promise<any>;
     getMessages(topicId: string, startTime: string): Promise<any>;
 }
