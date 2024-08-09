@@ -13,7 +13,7 @@
   "start:backend": "cd backend && npm run start:dev",
   "start:frontend": "ionic serve",
   "start:dev": "concurrently \"npm run start:backend\" \"npm run start:frontend --port 80\"",
-  "start:prod": "node dist/main.js",
+  "start:prod": "cd backend && npm run start:prod",
   "build:full": "npm run build:frontend && npm run build:backend",
   "build:frontend": "ng build --configuration production",
   "build:backend": "cd backend && mkdir -p public && npm run build && cp -r ../dist/* ./public/"
