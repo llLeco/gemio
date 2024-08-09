@@ -1,39 +1,275 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/dashboard"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Create Asset</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content class="ion-padding">
   <form [formGroup]="assetForm" (ngSubmit)="onSubmit()">
-    <ion-item>
-      <ion-label position="floating">Name</ion-label>
-      <ion-input formControlName="name" type="text"></ion-input>
-    </ion-item>
+    <h2>Create Asset</h2>
 
-    <ion-item>
-      <ion-label position="floating">Manufacturer</ion-label>
-      <ion-input formControlName="manufacturer" type="text"></ion-input>
-    </ion-item>
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Basic Information</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="floating">Name (ID/TAG)</ion-label>
+          <ion-input formControlName="name"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Type</ion-label>
+          <ion-input formControlName="machine_type"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Serial Number</ion-label>
+          <ion-input formControlName="serial_number"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Manufacturer</ion-label>
+          <ion-input formControlName="manufacturer"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Model</ion-label>
+          <ion-input formControlName="model"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Manufacture Year</ion-label>
+          <ion-input type="number" formControlName="manufacture_year"></ion-input>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
 
-    <ion-item>
-      <ion-label position="floating">Model</ion-label>
-      <ion-input formControlName="model" type="text"></ion-input>
-    </ion-item>
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Location and Ownership</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="floating">Customer ID</ion-label>
+          <ion-input formControlName="customer_id"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Site ID</ion-label>
+          <ion-input formControlName="site_id"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Project/Contract ID</ion-label>
+          <ion-input formControlName="project_id"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Owner</ion-label>
+          <ion-input formControlName="owner"></ion-input>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
 
-    <ion-item>
-      <ion-label position="floating">Serial Number</ion-label>
-      <ion-input formControlName="serialNumber" type="text"></ion-input>
-    </ion-item>
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Dates and Warranty</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="floating">Acquisition Date</ion-label>
+          <ion-datetime formControlName="acquisition_date"></ion-datetime>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Purchase Date</ion-label>
+          <ion-datetime formControlName="purchase_date"></ion-datetime>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Installation Date</ion-label>
+          <ion-datetime formControlName="installation_date"></ion-datetime>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Warranty (months)</ion-label>
+          <ion-input type="number" formControlName="warranty_in_months"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Warranty Start Date</ion-label>
+          <ion-datetime formControlName="warranty_start_date"></ion-datetime>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
 
-    <ion-item>
-      <ion-label position="floating">Manufacture Date</ion-label>
-      <ion-datetime formControlName="manufactureDate" display-format="DD/MM/YYYY"></ion-datetime>
-    </ion-item>
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Financial Information</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="floating">Cost Center</ion-label>
+          <ion-input formControlName="cost_center"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Account</ion-label>
+          <ion-input formControlName="account"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Price</ion-label>
+          <ion-input type="number" formControlName="price"></ion-input>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
 
-    <ion-button expand="block" type="submit" [disabled]="!assetForm.valid"> Create Asset </ion-button>
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Operational Information</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="floating">Criticality (1-3)</ion-label>
+          <ion-select formControlName="criticality">
+            <ion-select-option value="1">1</ion-select-option>
+            <ion-select-option value="2">2</ion-select-option>
+            <ion-select-option value="3">3</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Initial Reading Date</ion-label>
+          <ion-datetime formControlName="initial_reading_date"></ion-datetime>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Last Reading Date</ion-label>
+          <ion-datetime formControlName="last_reading_date"></ion-datetime>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Load Working Time</ion-label>
+          <ion-input type="number" formControlName="load_working_time"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Working Time</ion-label>
+          <ion-input type="number" formControlName="working_time"></ion-input>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Sensors</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div formArrayName="sensors_attributes">
+          <ion-card *ngFor="let sensor of sensors.controls; let i = index">
+            <ion-card-content [formGroupName]="i">
+              <ion-item>
+                <ion-label position="floating">Sensor Type ID</ion-label>
+                <ion-input formControlName="sensor_type_id"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Name</ion-label>
+                <ion-input formControlName="name"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Vendor Code</ion-label>
+                <ion-input formControlName="vendor_code"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Start Time</ion-label>
+                <ion-datetime formControlName="start_time"></ion-datetime>
+              </ion-item>
+              <ion-item>
+                <ion-label>Has Temperature Monitor</ion-label>
+                <ion-toggle formControlName="has_temperature_monitor_1"></ion-toggle>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Temperature Monitor Value</ion-label>
+                <ion-input type="number" formControlName="temperature_monitor_value_1"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Warning Temperature Monitor</ion-label>
+                <ion-input type="number" formControlName="warning_temperature_monitor_1"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Temperature Monitor Name</ion-label>
+                <ion-input formControlName="temperature_monitor_name_1"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label>Has Geofence</ion-label>
+                <ion-toggle formControlName="has_geofence"></ion-toggle>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Geofence Distance (km)</ion-label>
+                <ion-input type="number" formControlName="geofence_distance"></ion-input>
+              </ion-item>
+              <ion-button fill="clear" (click)="removeSensor(i)">Remove Sensor</ion-button>
+            </ion-card-content>
+          </ion-card>
+        </div>
+        <ion-button (click)="addSensor()">Add Sensor</ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Virtual Sensor</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label>Has Virtual Sensor</ion-label>
+          <ion-toggle formControlName="has_virtual_sensor"></ion-toggle>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Virtual Sensor Name</ion-label>
+          <ion-input formControlName="virtual_sensor_name"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Daily Hours</ion-label>
+          <ion-input type="number" formControlName="virtual_sensor_daily_hours"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Days in Week</ion-label>
+          <ion-input type="number" formControlName="virtual_sensor_days_in_week"></ion-input>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Machine Modules</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div formArrayName="machine_modules_attributes">
+          <ion-card *ngFor="let module of machineModules.controls; let i = index">
+            <ion-card-content [formGroupName]="i">
+              <ion-item>
+                <ion-label position="floating">Serial Number</ion-label>
+                <ion-input formControlName="serial_number"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Manufacturer</ion-label>
+                <ion-input formControlName="manufacturer"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Machine Module Model</ion-label>
+                <ion-input formControlName="machine_module_model"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Machine Module Type ID</ion-label>
+                <ion-input formControlName="machine_module_type_id"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Module Type Machine</ion-label>
+                <ion-input formControlName="module_type_machine"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Observations</ion-label>
+                <ion-textarea formControlName="obs"></ion-textarea>
+              </ion-item>
+              <ion-button fill="clear" (click)="removeMachineModule(i)">Remove Module</ion-button>
+            </ion-card-content>
+          </ion-card>
+        </div>
+        <ion-button (click)="addMachineModule()">Add Machine Module</ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Observations</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="floating">Observations</ion-label>
+          <ion-textarea formControlName="obs"></ion-textarea>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-button expand="block" type="submit" [disabled]="!assetForm.valid">Create Asset</ion-button>
   </form>
 </ion-content>

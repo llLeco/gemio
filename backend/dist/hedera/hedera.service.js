@@ -90,7 +90,7 @@ let HederaService = HederaService_1 = class HederaService {
         }
         return collections;
     }
-    async getNFTsInCollection(collectionId) {
+    async getNFTsInCollection(collectionId, limit = 10, startAfter = 0) {
         const nfts = [];
         const tokenId = sdk_1.TokenId.fromString(collectionId);
         try {
@@ -102,7 +102,8 @@ let HederaService = HederaService_1 = class HederaService {
                 return nfts;
             }
             const totalSupply = tokenInfo.totalSupply.toNumber();
-            for (let i = 1; i <= totalSupply; i++) {
+            const endIndex = Math.min(startAfter + limit, totalSupply);
+            for (let i = startAfter + 1; i <= endIndex; i++) {
                 try {
                     const nftId = new sdk_1.NftId(tokenId, i);
                     const nftInfo = await new sdk_1.TokenNftInfoQuery()

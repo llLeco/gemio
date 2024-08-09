@@ -126,7 +126,7 @@ export class HederaService implements OnModuleInit, OnModuleDestroy {
     return collections;
   }
 
-  async getNFTsInCollection(collectionId: string): Promise<any[]> {
+  async getNFTsInCollection(collectionId: string, limit: number = 10, startAfter: number = 0): Promise<any[]> {
     const nfts: any[] = [];
     const tokenId = TokenId.fromString(collectionId);
 
@@ -141,15 +141,14 @@ export class HederaService implements OnModuleInit, OnModuleDestroy {
       }
 
       const totalSupply = tokenInfo.totalSupply.toNumber();
+      const endIndex = Math.min(startAfter + limit, totalSupply);
 
-      for (let i = 1; i <= totalSupply; i++) {
+      for (let i = startAfter + 1; i <= endIndex; i++) {
         try {
           const nftId = new NftId(tokenId, i);
           const nftInfo = await new TokenNftInfoQuery()
             .setNftId(nftId)
             .execute(this.client);
-
-          // this.logger.debug(`NFT ${i} info:`, JSON.stringify(nftInfo, null, 2));
 
           if (nftInfo && nftInfo.length > 0 && nftInfo[0].accountId) {
             nfts.push({

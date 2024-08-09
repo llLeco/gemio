@@ -1,5 +1,5 @@
 <ion-header>
-  <ion-toolbar>
+  <ion-toolbar color="primary">
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/dashboard"></ion-back-button>
     </ion-buttons>
@@ -8,68 +8,63 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-    <p>Asset details</p>
-    <ion-card *ngFor="let asset of assets">
-      <ion-card-header>
-        <ion-card-title>{{ asset.id }}</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <ion-list>
-          <ion-item>
-            <ion-label>Asset ID</ion-label>
-            <p slot="end">{{ asset.id }}</p>
-          </ion-item>
-          <ion-item>
-            <ion-label>Asset Owner</ion-label>
-            <p slot="end">{{ asset.owner }}</p>
-          </ion-item>
-          <ion-item>
-            <ion-label>Asset Serial Number</ion-label>
-            <p slot="end">{{ asset.serialNumber }}</p>
-          </ion-item>
-          <ion-item>
-            <ion-label>Asset Creation time</ion-label>
-            <p slot="end">{{ asset.creationTime }}</p>
-          </ion-item>
-          <ion-item>
-            <ion-label>Hedera File ID</ion-label>
-            <p slot="end">{{ asset.metadata }}</p>
-          </ion-item>
-        </ion-list>
-
-        <!-- Show metadata Content -->
-        <ion-list>
-          <ion-item>
-            <ion-label>Metadata</ion-label>
-          </ion-item>
-          <ion-item>
-            <ion-label>{{ asset.details | json }}</ion-label>
-          </ion-item>
-        </ion-list>
-
-        <!-- Show Events -->
-        <ion-list>
-          <ion-item>
-            <ion-label>Events</ion-label>
-          </ion-item>
-          <ion-item *ngFor="let event of asset.events">
-            <ion-label>{{ event }}</ion-label>
-          </ion-item>
-        </ion-list>
-
-        <!-- Input to submit a json to be published as an event -->
+  <ion-card *ngFor="let asset of assets" class="asset-card">
+    <ion-card-header>
+      <ion-card-title>{{ asset.id }}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list>
         <ion-item>
-          <ion-label position="stacked">Event Payload</ion-label>
-          <ion-textarea [(ngModel)]="newEvent" placeholder="Enter the event payload"></ion-textarea>
+          <ion-label>Asset ID</ion-label>
+          <p slot="end">{{ asset.id }}</p>
         </ion-item>
-        <ion-button (click)="publishEvent(asset)">Publish Event</ion-button>
-      </ion-card-content>
-    </ion-card>
+        <ion-item>
+          <ion-label>Asset Owner</ion-label>
+          <p slot="end">{{ asset.owner }}</p>
+        </ion-item>
+        <ion-item>
+          <ion-label>Asset Serial Number</ion-label>
+          <p slot="end">{{ asset.serialNumber }}</p>
+        </ion-item>
+        <ion-item>
+          <ion-label>Asset Creation Time</ion-label>
+          <p slot="end">{{ asset.creationTime }}</p>
+        </ion-item>
+        <ion-item>
+          <ion-label>Hedera File ID</ion-label>
+          <p slot="end">{{ asset.metadata }}</p>
+        </ion-item>
+      </ion-list>
 
-    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-      <ion-fab-button [routerLink]="'/asset-form/' + this.collectionId">
-        <ion-icon name="add"></ion-icon>
-      </ion-fab-button>
-    </ion-fab>
+      <ion-list>
+        <ion-item>
+          <ion-label>Metadata</ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-label>{{ asset.details | json }}</ion-label>
+        </ion-item>
+      </ion-list>
 
+      <ion-list>
+        <ion-item>
+          <ion-label>Events</ion-label>
+        </ion-item>
+        <ion-item *ngFor="let event of asset.events">
+          <ion-label>{{ event }}</ion-label>
+        </ion-item>
+      </ion-list>
+
+      <ion-item>
+        <ion-label position="stacked">Event Payload</ion-label>
+        <ion-textarea [(ngModel)]="newEvent" placeholder="Enter the event payload"></ion-textarea>
+      </ion-item>
+      <ion-button expand="block" (click)="publishEvent(asset)">Publish Event</ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button [routerLink]="'/asset-form/' + collectionId">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content>

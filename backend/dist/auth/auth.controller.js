@@ -23,6 +23,9 @@ let AuthController = class AuthController {
     async login(req) {
         return this.authService.login(req.user);
     }
+    async status() {
+        return { status: 'ok' };
+    }
 };
 exports.AuthController = AuthController;
 __decorate([
@@ -33,6 +36,12 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "login", null);
+__decorate([
+    (0, common_1.Get)('status'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "status", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

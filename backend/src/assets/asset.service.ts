@@ -1,7 +1,21 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { HederaService } from '../hedera/hedera.service';
 import { Asset } from '../models/asset.model';
 import { CreateAssetDto } from '../models/create-asset.dto';
+
+class AssetCreationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AssetCreationError';
+  }
+}
+
+class AssetEventError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AssetEventError';
+  }
+}
 
 @Injectable()
 export class AssetService {
@@ -11,18 +25,26 @@ export class AssetService {
 
   async createAsset(createAssetDto: CreateAssetDto): Promise<Asset> {
     try {
+      // Ensure createAssetDto is not undefined
+      if (!createAssetDto) {
+        throw new BadRequestException('Asset data is required');
+      }
 
+      // Create a topic for the asset
       const topicId = await this.hederaService.createTopic(createAssetDto);
       console.log('Topic ID:', topicId);
 
+      // Prepare initial metadata
       const initialMetadata = {
         data: createAssetDto,
         timestamp: new Date().toISOString(),
         topicId: topicId
       };
 
+      // Mint NFT
       const serialNumber = await this.hederaService.mintNFT(createAssetDto.collectionId, initialMetadata);
 
+      // Create asset object
       const asset = new Asset({
         ...createAssetDto,
         id: `${createAssetDto.collectionId}:${serialNumber}`,
@@ -30,9 +52,7 @@ export class AssetService {
         topicId: topicId,
       });
 
-      this.assets.push(asset);
-
-      // Registrar evento de criação no HCS
+      // Register creation event
       const createEvent = {
         type: 'ASSET_CREATED',
         assetId: asset.id,
@@ -45,7 +65,7 @@ export class AssetService {
       return asset;
     } catch (error) {
       console.error('Error creating asset', error);
-      throw error;
+      throw new AssetCreationError(`Failed to create asset: ${error.message}`);
     }
   }
 
@@ -54,12 +74,11 @@ export class AssetService {
       await this.hederaService.submitMessage(topicId, JSON.stringify(event));
     } catch (error) {
       console.error('Error creating asset event', error);
-      throw error;
+      throw new AssetEventError(`Failed to create asset event: ${error.message}`);
     }
   }
 
   async getAssetEvents(assetId: string, startDate: Date): Promise<any> {
-    // hedera service to get messages
     try {
       const asset = this.assets.find((a) => a.id === assetId);
       if (!asset) {
@@ -71,11 +90,19 @@ export class AssetService {
       return messages;
     } catch (error) {
       console.error(`Error fetching events for asset ID ${assetId}`, error);
-      throw error;
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(`Failed to fetch asset events: ${error.message}`);
     }
   }
 
   async getNFTInfo(tokenId: string): Promise<any> {
-    return this.hederaService.getNFTInfo(tokenId);
+    try {
+      return await this.hederaService.getNFTInfo(tokenId);
+    } catch (error) {
+      console.error(`Error fetching NFT info for token ID ${tokenId}`, error);
+      throw new BadRequestException(`Failed to fetch NFT info: ${error.message}`);
+    }
   }
 }

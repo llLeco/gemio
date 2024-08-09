@@ -16,7 +16,7 @@ export declare class HederaService implements OnModuleInit, OnModuleDestroy {
     }>;
     getAccountBalance(accountId: string): Promise<string>;
     getCollectionsForAccount(accountId: string): Promise<string[]>;
-    getNFTsInCollection(collectionId: string): Promise<any[]>;
+    getNFTsInCollection(collectionId: string, limit?: number, startAfter?: number): Promise<any[]>;
     transferHbar(from: string, to: string, amount: number): Promise<string>;
     createNFTCollection(name: string, symbol: string): Promise<string>;
     mintNFT(collectionId: string, metadata: any): Promise<string>;

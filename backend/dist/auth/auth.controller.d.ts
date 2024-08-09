@@ -7,4 +7,7 @@ export declare class AuthController {
         username: any;
         hederaAccountId: any;
     }>;
+    status(): Promise<{
+        status: string;
+    }>;
 }

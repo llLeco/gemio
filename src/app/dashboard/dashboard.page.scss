@@ -1,0 +1,37 @@
+.user-info-card {
+  --background: var(--ion-color-primary);
+  --color: var(--ion-color-primary-contrast);
+  margin-bottom: 20px;
+}
+
+.user-info-card ion-card-title {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+.collections-card {
+  --background: var(--ion-color-light);
+}
+
+.collection-item {
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  margin-bottom: 10px;
+  --background: var(--ion-color-light);
+  --border-radius: 8px;
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.collection-item ion-label h2 {
+  font-weight: bold;
+  color: var(--ion-color-dark);
+}
+
+.collection-item ion-note {
+  font-size: 0.8em;
+  color: var(--ion-color-medium);
+}
+
+.create-collection-btn {
+  margin-top: 20px;
+}

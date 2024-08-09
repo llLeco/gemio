@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import axios from 'axios';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AssetService {
-  private apiUrl = 'http://localhost:3000/assets';
+  private apiUrl = `${environment.apiUrl}/assets`;
 
   constructor() { }
 
@@ -59,26 +60,6 @@ export class AssetService {
     }
   }
 
-  // async updateAsset(id: string, assetData: any): Promise<any> {
-  //   try {
-  //     const response = await axios.put(`${this.apiUrl}/${id}`, assetData, { headers: this.getHeaders() });
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error(`Error updating asset ID ${id}`, error);
-  //     throw error;
-  //   }
-  // }
-
-  // async deleteAsset(id: string): Promise<any> {
-  //   try {
-  //     const response = await axios.delete(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error(`Error deleting asset ID ${id}`, error);
-  //     throw error;
-  //   }
-  // }
-
   async getAssetEvents(topicId: string, startTime?: Date): Promise<any[]> {
     try {
       const params = startTime ? { startTime: startTime.toISOString() } : {};
@@ -100,14 +81,4 @@ export class AssetService {
       throw error;
     }
   }
-
-  // async getAssetMetadataHistory(fileId: string): Promise<any[]> {
-  //   try {
-  //     const response = await axios.get(`${this.apiUrl}/metadata-history/${fileId}`, { headers: this.getHeaders() });
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error(`Error fetching metadata history for file ID ${fileId}`, error);
-  //     throw error;
-  //   }
-  // }
 }

@@ -1,6 +1,6 @@
-<ion-header>
+<ion-header class="ion-no-border">
   <ion-toolbar>
-    <ion-title>Dashboard</ion-title>
+    <ion-title class="ion-text-center">Dashboard</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -9,31 +9,32 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <ion-card>
+  <ion-card class="user-info-card">
     <ion-card-header>
-      <ion-card-title>User Information</ion-card-title>
+      <ion-card-title>Welcome, {{ username }}</ion-card-title>
     </ion-card-header>
     <ion-card-content>
-      <p><strong>Username:</strong> {{ username }}</p>
       <p><strong>Hedera Account ID:</strong> {{ hederaAccountId }}</p>
     </ion-card-content>
   </ion-card>
 
-  <ion-card>
+  <ion-card class="collections-card">
     <ion-card-header>
-      <ion-card-title>Collections</ion-card-title>
+      <ion-card-title>Your Collections</ion-card-title>
     </ion-card-header>
     <ion-card-content>
       <ion-list>
-        <ion-item *ngFor="let collection of collections" [routerLink]="'/asset/' + collection.id">
+        <ion-item *ngFor="let collection of collections; let i = index" [routerLink]="'/asset/' + collection.id" class="collection-item" [attr.data-index]="i">
           <ion-label>
             <h2>{{ collection.name }}</h2>
-            <p>ID: {{ collection.id }}</p>
+            <p>{{ collection.symbol }}</p>
           </ion-label>
+          <ion-note slot="end">{{ collection.id }}</ion-note>
         </ion-item>
       </ion-list>
-
-      <ion-button expand="block" routerLink="/collection-form">Create Collection</ion-button>
+      <ion-button expand="block" routerLink="/collection-form" class="create-collection-btn">
+        Create New Collection
+      </ion-button>
     </ion-card-content>
   </ion-card>
 </ion-content>
