@@ -133,4 +133,40 @@ export class AssetService {
       throw new BadRequestException(`Failed to fetch Iliot asset: ${error.message}`);
     }
   }
+
+  async getTopicId(assetId: string): Promise<string> {
+    try {
+      const [collectionId, serialNumber] = assetId.split(':');
+
+        if (!collectionId || !serialNumber) {
+          throw new BadRequestException('Invalid asset ID format');
+        }
+
+        const nftInfo = await this.hederaService.getNFTInfo(collectionId, serialNumber);
+
+        if (!nftInfo || !nftInfo.metadata) {
+          throw new NotFoundException(`Asset with ID ${assetId} not found`);
+        }
+
+        const fileId = Buffer.from(nftInfo.metadata).toString('utf8');
+
+        if (!fileId) {
+          throw new BadRequestException('Asset metadata file ID is invalid or missing');
+        }
+
+        const fileContents = await this.hederaService.getFileContents(fileId);
+
+        if (!fileContents || !fileContents.topicId) {
+          throw new BadRequestException('Asset topic ID is invalid or missing');
+        }
+
+        return fileContents.topicId;
+      } catch (error) {
+        console.error(`Error fetching topic ID for asset with ID ${assetId}`, error);
+        if (error instanceof BadRequestException || error instanceof NotFoundException) {
+          throw error;
+        }
+        throw new BadRequestException(`Failed to fetch topic ID: ${error.message}`);
+      }
+    }
 }

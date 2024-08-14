@@ -36,4 +36,9 @@ export class AssetController {
   async getIliotAsset(@Param('id') assetId: string) {
     return this.assetService.getIliotAsset(assetId);
   }
+
+  @Get(':id/topicId')
+  async getTopicId(@Param('id') assetId: string) {
+    return this.assetService.getTopicId(assetId);
+  }
 }

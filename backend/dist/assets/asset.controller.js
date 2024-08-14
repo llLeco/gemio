@@ -37,6 +37,9 @@ let AssetController = class AssetController {
     async getIliotAsset(assetId) {
         return this.assetService.getIliotAsset(assetId);
     }
+    async getTopicId(assetId) {
+        return this.assetService.getTopicId(assetId);
+    }
 };
 exports.AssetController = AssetController;
 __decorate([
@@ -76,6 +79,13 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], AssetController.prototype, "getIliotAsset", null);
+__decorate([
+    (0, common_1.Get)(':id/topicId'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], AssetController.prototype, "getTopicId", null);
 exports.AssetController = AssetController = __decorate([
     (0, common_1.Controller)('assets'),
     __metadata("design:paramtypes", [asset_service_1.AssetService,
