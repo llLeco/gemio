@@ -1,37 +1,68 @@
-.user-info-card {
-  --background: var(--ion-color-primary);
-  --color: var(--ion-color-primary-contrast);
-  margin-bottom: 20px;
+div.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  img {
+    width: 40px;
+    height: 40px;
+  }
+
+  h1 {
+    font-size: 36px;
+    font-weight: 700;
+    margin-left: 8px;
+  }
 }
 
-.user-info-card ion-card-title {
-  font-size: 1.5em;
-  font-weight: bold;
+div.user-logged {
+  margin: 16px 0;
+  text-align: center;
+
+  h1 {
+    font-size: 24px;
+    font-weight: 500;
+  }
+
+  p {
+    font-size: 14px;
+    font-weight: 400;
+  }
 }
 
-.collections-card {
-  --background: var(--ion-color-light);
-}
+div.action {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 
-.collection-item {
-  --padding-start: 0;
-  --inner-padding-end: 0;
-  margin-bottom: 10px;
-  --background: var(--ion-color-light);
-  --border-radius: 8px;
-  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
+  div.card {
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background: var(--ion-color-dark);
 
-.collection-item ion-label h2 {
-  font-weight: bold;
-  color: var(--ion-color-dark);
-}
+    display: flex;
+    align-items: center;
+    gap: 16px;
 
-.collection-item ion-note {
-  font-size: 0.8em;
-  color: var(--ion-color-medium);
-}
+    ion-icon {
+      font-size: 32px;
+    }
 
-.create-collection-btn {
-  margin-top: 20px;
+    div.text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      h1 {
+        font-size: 18px;
+        font-weight: 500;
+      }
+
+      p {
+        font-size: 14px;
+        font-weight: 400;
+      }
+    }
+  }
 }

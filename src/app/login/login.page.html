@@ -1,19 +1,35 @@
-<ion-header>
+<!-- <ion-header>
   <ion-toolbar>
     <ion-title>Login</ion-title>
   </ion-toolbar>
-</ion-header>
+</ion-header> -->
 
 <ion-content class="ion-padding">
-  <form (ngSubmit)="login()">
-    <ion-item>
-      <ion-label position="floating">Username</ion-label>
-      <ion-input type="text" [(ngModel)]="username" name="username" required></ion-input>
-    </ion-item>
-    <ion-item>
-      <ion-label position="floating">Password</ion-label>
-      <ion-input type="password" [(ngModel)]="password" name="password" required></ion-input>
-    </ion-item>
-    <ion-button expand="block" type="submit" class="ion-margin-top">Login</ion-button>
-  </form>
+
+  <div class="header">
+    <img src="assets/icon/gemio.png" alt="Gemio" />
+    <h1>Gemio</h1>
+  </div>
+
+  <div class="login-card">
+    <form (ngSubmit)="login()">
+      <ion-item lines="none">
+        <ion-label position="floating">Username</ion-label>
+        <ion-input type="text" [(ngModel)]="username" name="username" required></ion-input>
+      </ion-item>
+
+      <ion-item lines="none">
+        <ion-label position="floating">Password</ion-label>
+        <ion-input type="password" [(ngModel)]="password" name="password" required></ion-input>
+      </ion-item>
+      <ion-button expand="block" shape="round" type="submit" class="ion-margin-top">Login</ion-button>
+      <ion-button expand="block" shape="round" fill="clear" size="small" color="light" class="ion-margin-top">Register</ion-button>
+    </form>
+  </div>
+
+  <div class="pre-save-logins ion-padding">
+    <ion-button expand="block" shape="round" color="dark" (click)="loginAs('creator')">Login as Creator</ion-button>
+    <ion-button expand="block" shape="round" color="dark" (click)="loginAs('owner')">Login as Owner</ion-button>
+    <ion-button expand="block" shape="round" color="dark" (click)="loginAs('maintainer')">Login as Maintainer</ion-button>
+  </div>
 </ion-content>

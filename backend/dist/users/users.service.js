@@ -21,6 +21,21 @@ let UsersService = class UsersService {
                 username: 'leco',
                 password: '$2b$10$4zpsMBKFFkcj8OY4CJmuruf8Vedv4CS7pI5Q6/lfdggT5niK/x3KW',
             },
+            {
+                hederaAccountId: this.configService.get('HEDERA_ACCOUNT_ID'),
+                username: 'creator',
+                password: '$2b$10$4zpsMBKFFkcj8OY4CJmuruf8Vedv4CS7pI5Q6/lfdggT5niK/x3KW',
+            },
+            {
+                hederaAccountId: this.configService.get('HEDERA_ACCOUNT_ID'),
+                username: 'owner',
+                password: '$2b$10$4zpsMBKFFkcj8OY4CJmuruf8Vedv4CS7pI5Q6/lfdggT5niK/x3KW',
+            },
+            {
+                hederaAccountId: this.configService.get('HEDERA_ACCOUNT_ID'),
+                username: 'mainainer',
+                password: '$2b$10$4zpsMBKFFkcj8OY4CJmuruf8Vedv4CS7pI5Q6/lfdggT5niK/x3KW',
+            },
         ];
     }
     async findOne(username) {

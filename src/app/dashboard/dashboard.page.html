@@ -5,18 +5,39 @@
 </ion-header>
 
 <ion-content class="ion-padding">
+
+  <div class="header">
+    <img src="assets/icon/gemio.png" alt="Gemio" />
+    <h1>Gemio</h1>
+  </div>
+
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <ion-card class="user-info-card">
-    <ion-card-header>
-      <ion-card-title>Welcome, {{ username }}</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <p><strong>Hedera Account ID:</strong> {{ hederaAccountId }}</p>
-    </ion-card-content>
-  </ion-card>
+  <div class="user-logged">
+    <h1>Welcome {{ username | titlecase}}!</h1>
+    <p><strong>Hedera Account ID:</strong> {{ hederaAccountId }}</p>
+  </div>
+
+  <div class="action">
+
+    <div class="card">
+      <ion-icon class="collection-icon" name="albums-outline"></ion-icon>
+      <div class="text">
+        <h1>See Collections</h1>
+        <p> View all your collections and assets</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <ion-icon class="permissions-icon" name="lock-closed-outline"></ion-icon>
+      <div class="text">
+        <h1> Manage Permissions</h1>
+        <p> Manage permissions for users and assets</p>
+      </div>
+    </div>
+  </div>
 
   <ion-card class="collections-card">
     <ion-card-header>

@@ -100,9 +100,10 @@
   "start:backend": "cd backend && npm run start:dev",
   "start:frontend": "ionic serve",
   "start:dev": "concurrently \"npm run start:backend\" \"npm run start:frontend --port 80\"",
+  "start:prod": "cd backend && npm run start:prod",
   "build:full": "npm run build:frontend && npm run build:backend",
-  "build:frontend": "cd frontend && ng build --prod",
-  "build:backend": "cd backend && npm run build && cp -r ../frontend/dist/frontend/* ./public/"
+  "build:frontend": "ng build --configuration production",
+  "build:backend": "cd backend && mkdir -p public && npm run build && cp -r ../dist/* ./public/"
 },
 
   "private": true,
@@ -263,7 +264,7 @@ export default config;
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "www",
+            "outputPath": "dist",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -866,26 +867,6 @@ platformBrowserDynamic().bootstrapModule(AppModule)
 
 ```
 
-# .vscode/settings.json
-
-```json
-{
-  "typescript.preferences.autoImportFileExcludePatterns": ["@ionic/angular/common", "@ionic/angular/standalone"]
-}
-
-```
-
-# .vscode/extensions.json
-
-```json
-{
-    "recommendations": [
-      "ionic.ionic"
-    ]
-}
-
-```
-
 # backend/vercel.json
 
 ```json
@@ -971,6 +952,7 @@ platformBrowserDynamic().bootstrapModule(AppModule)
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@nestjs/class-transformer": "^0.4.0",
     "@nestjs/cli": "8.2.6",
     "@nestjs/config": "^3.2.3",
     "@nestjs/jwt": "^10.2.0",
@@ -979,6 +961,7 @@ platformBrowserDynamic().bootstrapModule(AppModule)
     "@nestjs/schematics": "8.0.11",
     "axios": "^1.7.3",
     "bcrypt": "^5.1.1",
+    "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "dotenv": "^16.4.5",
     "passport": "^0.7.0",
@@ -1274,6 +1257,26 @@ module.exports = {
 
 ```
 
+# .vscode/settings.json
+
+```json
+{
+  "typescript.preferences.autoImportFileExcludePatterns": ["@ionic/angular/common", "@ionic/angular/standalone"]
+}
+
+```
+
+# .vscode/extensions.json
+
+```json
+{
+    "recommendations": [
+      "ionic.ionic"
+    ]
+}
+
+```
+
 # src/theme/variables.scss
 
 ```scss
@@ -1285,23 +1288,10 @@ module.exports = {
 # src/environments/environment.ts
 
 ```ts
-// This file can be replaced during build by using the `fileReplacements` array.
-// `ng build` replaces `environment.ts` with `environment.prod.ts`.
-// The list of file replacements can be found in `angular.json`.
-
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:3000',
 };
-
-/*
- * For easier debugging in development mode, you can import the following file
- * to ignore zone related error stack frames such as `zone.run`, `zoneDelegate.invokeTask`.
- *
- * This import should be commented out in production mode because it will have a negative impact
- * on performance if an error is thrown.
- */
-// import 'zone.js/plugins/zone-error';  // Included with Angular CLI.
 
 ```
 
@@ -1309,7 +1299,8 @@ export const environment = {
 
 ```ts
 export const environment = {
-  production: true
+  production: true,
+  apiUrl: 'http://34.174.181.4:3000',
 };
 
 ```
@@ -1544,30 +1535,30 @@ export class AppService {
 
 ```ts
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AssetsModule } from './assets/asset.module';
-import { AssetController } from './assets/asset.controller';
-import { AssetService } from './assets/asset.service';
 import { UsersModule } from './users/users.module';
 import { HederaModule } from './hedera/hedera.module';
 import { AuthModule } from './auth/auth.module';
-import { ConfigModule } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
-import { CollectionController } from './collections/collection.controller';
-import { CollectionService } from './collections/collection.service';
+import { CollectionModule } from './collections/collection.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     AssetsModule,
     HederaModule,
     AuthModule,
     UsersModule,
-    ConfigModule.forRoot(),
     CacheModule.register(),
+    CollectionModule,
   ],
-  controllers: [AppController, AssetController, CollectionController],
-  providers: [AppService, AssetService, CollectionService],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
 
@@ -1594,1029 +1585,6 @@ export class AppController {
 # src/assets/icon/favicon.png
 
 This is a binary file of the type: Image
-
-# src/app/guards/auth.guard.ts
-
-```ts
-import { Injectable } from '@angular/core';
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree, Router } from '@angular/router';
-import { Observable } from 'rxjs';
-import { AuthService } from '../services/auth.service';
-
-@Injectable({
-  providedIn: 'root'
-})
-export class AuthGuard implements CanActivate {
-  constructor(private authService: AuthService, private router: Router) {}
-
-  canActivate(
-    route: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-    if (this.authService.isLoggedIn()) {
-      return true;
-    } else {
-      return this.router.createUrlTree(['/login']);
-    }
-  }
-}
-
-```
-
-# src/app/guards/auth.guard.spec.ts
-
-```ts
-import { TestBed } from '@angular/core/testing';
-import { CanActivateFn } from '@angular/router';
-
-import { authGuard } from './auth.guard';
-
-describe('authGuard', () => {
-  const executeGuard: CanActivateFn = (...guardParameters) => 
-      TestBed.runInInjectionContext(() => authGuard(...guardParameters));
-
-  beforeEach(() => {
-    TestBed.configureTestingModule({});
-  });
-
-  it('should be created', () => {
-    expect(executeGuard).toBeTruthy();
-  });
-});
-
-```
-
-# src/app/login/login.page.ts
-
-```ts
-import { Component } from '@angular/core';
-import { AuthService } from '../services/auth.service';
-import { Router } from '@angular/router';
-import { AlertController } from '@ionic/angular';
-
-@Component({
-  selector: 'app-login',
-  templateUrl: './login.page.html',
-  styleUrls: ['./login.page.scss'],
-})
-export class LoginPage {
-  username: string = '';
-  password: string = '';
-
-  constructor(
-    private authService: AuthService,
-    private router: Router,
-    private alertController: AlertController
-  ) {}
-
-  async login() {
-    try {
-      const result = await this.authService.login(this.username, this.password).toPromise();
-      console.log('Login successful', result);
-      this.router.navigate(['/dashboard']);
-    } catch (error) {
-      console.error('Login failed', error);
-      this.showErrorAlert(error);
-    }
-  }
-
-  async showErrorAlert(error: any) {
-    const alert = await this.alertController.create({
-      header: 'Login Failed',
-      message: error.error?.message || 'An unexpected error occurred.',
-      buttons: ['OK']
-    });
-
-    await alert.present();
-  }
-}
-
-```
-
-# src/app/login/login.page.spec.ts
-
-```ts
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { LoginPage } from './login.page';
-
-describe('LoginPage', () => {
-  let component: LoginPage;
-  let fixture: ComponentFixture<LoginPage>;
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(LoginPage);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-});
-
-```
-
-# src/app/login/login.page.scss
-
-```scss
-
-```
-
-# src/app/login/login.page.html
-
-```html
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Login</ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content class="ion-padding">
-  <form (ngSubmit)="login()">
-    <ion-item>
-      <ion-label position="floating">Username</ion-label>
-      <ion-input type="text" [(ngModel)]="username" name="username" required></ion-input>
-    </ion-item>
-    <ion-item>
-      <ion-label position="floating">Password</ion-label>
-      <ion-input type="password" [(ngModel)]="password" name="password" required></ion-input>
-    </ion-item>
-    <ion-button expand="block" type="submit" class="ion-margin-top">Login</ion-button>
-  </form>
-</ion-content>
-
-```
-
-# src/app/login/login.module.ts
-
-```ts
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-
-import { IonicModule } from '@ionic/angular';
-
-import { LoginPageRoutingModule } from './login-routing.module';
-
-import { LoginPage } from './login.page';
-
-@NgModule({
-  imports: [
-    CommonModule,
-    FormsModule,
-    IonicModule,
-    LoginPageRoutingModule
-  ],
-  declarations: [LoginPage]
-})
-export class LoginPageModule {}
-
-```
-
-# src/app/login/login-routing.module.ts
-
-```ts
-import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
-
-import { LoginPage } from './login.page';
-
-const routes: Routes = [
-  {
-    path: '',
-    component: LoginPage
-  }
-];
-
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule],
-})
-export class LoginPageRoutingModule {}
-
-```
-
-# src/app/dashboard/dashboard.page.ts
-
-```ts
-import { Component, OnInit } from '@angular/core';
-import { AssetService } from '../services/asset.service';
-import { CollectionService } from '../services/collection.service';
-import { ErrorHandlerService } from '../services/error-handler.service';
-import { AuthService } from '../services/auth.service';
-
-@Component({
-  selector: 'app-dashboard',
-  templateUrl: './dashboard.page.html',
-  styleUrls: ['./dashboard.page.scss'],
-})
-export class DashboardPage implements OnInit {
-  assets: any[] = [];
-  collections: any = [];
-  username: string = '';
-  hederaAccountId: string = '';
-  loading: boolean = true;
-
-  constructor(
-    private assetService: AssetService,
-    private collectionService: CollectionService,
-    private errorHandler: ErrorHandlerService,
-    private authService: AuthService
-  ) { }
-
-  ngOnInit() {
-    this.loadUserInfo();
-    this.loadCollections();
-  }
-
-  async loadUserInfo() {
-    const userInfo = await this.authService.getUserInfo();
-    console.log('User info', userInfo);
-    this.username = userInfo.username;
-    this.hederaAccountId = userInfo.hederaAccountId;
-  }
-
-  async loadCollections() {
-    try {
-      await this.errorHandler.showLoading('Loading collections...');
-      this.collections = await this.collectionService.getCollections();
-      console.log('Collections', this.collections);
-      await this.errorHandler.hideLoading();
-    } catch (error) {
-      await this.errorHandler.hideLoading();
-      this.errorHandler.handleError(error);
-    }
-  }
-
-  async doRefresh(event: any) {
-    try {
-      this.collections = await this.collectionService.getCollections();
-      this.errorHandler.showToast('Collections refreshed successfully');
-    } catch (error) {
-      this.errorHandler.handleError(error);
-    } finally {
-      event.target.complete();
-    }
-  }
-}
-
-```
-
-# src/app/dashboard/dashboard.page.spec.ts
-
-```ts
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { DashboardPage } from './dashboard.page';
-
-describe('DashboardPage', () => {
-  let component: DashboardPage;
-  let fixture: ComponentFixture<DashboardPage>;
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(DashboardPage);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-});
-
-```
-
-# src/app/dashboard/dashboard.page.scss
-
-```scss
-
-```
-
-# src/app/dashboard/dashboard.page.html
-
-```html
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Dashboard</ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content class="ion-padding">
-  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
-    <ion-refresher-content></ion-refresher-content>
-  </ion-refresher>
-
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>User Information</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <p><strong>Username:</strong> {{ username }}</p>
-      <p><strong>Hedera Account ID:</strong> {{ hederaAccountId }}</p>
-    </ion-card-content>
-  </ion-card>
-
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Collections</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <ion-list>
-        <ion-item *ngFor="let collection of collections" [routerLink]="'/asset/' + collection.id">
-          <ion-label>
-            <h2>{{ collection.name }}</h2>
-            <p>ID: {{ collection.id }}</p>
-          </ion-label>
-        </ion-item>
-      </ion-list>
-
-      <ion-button expand="block" routerLink="/collection-form">Create Collection</ion-button>
-    </ion-card-content>
-  </ion-card>
-</ion-content>
-
-```
-
-# src/app/dashboard/dashboard.module.ts
-
-```ts
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-
-import { IonicModule } from '@ionic/angular';
-
-import { DashboardPageRoutingModule } from './dashboard-routing.module';
-
-import { DashboardPage } from './dashboard.page';
-
-@NgModule({
-  imports: [
-    CommonModule,
-    FormsModule,
-    IonicModule,
-    DashboardPageRoutingModule,
-  ],
-  declarations: [DashboardPage]
-})
-export class DashboardPageModule {}
-
-```
-
-# src/app/dashboard/dashboard-routing.module.ts
-
-```ts
-import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
-
-import { DashboardPage } from './dashboard.page';
-
-const routes: Routes = [
-  {
-    path: '',
-    component: DashboardPage
-  }
-];
-
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule],
-})
-export class DashboardPageRoutingModule {}
-
-```
-
-# src/app/asset-form/asset-form.page.ts
-
-```ts
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { AssetService } from '../services/asset.service';
-import { ToastController } from '@ionic/angular';
-import { ErrorHandlerService } from '../services/error-handler.service';
-
-@Component({
-  selector: 'app-asset-form',
-  templateUrl: './asset-form.page.html',
-  styleUrls: ['./asset-form.page.scss'],
-})
-export class AssetFormPage implements OnInit {
-  assetForm: FormGroup = new FormGroup({});
-  public collectionId: string | null = null;
-
-  constructor(
-    private formBuilder: FormBuilder,
-    private assetService: AssetService,
-    private route: ActivatedRoute,
-    private router: Router,
-    private toastController: ToastController,
-    private errorHandler: ErrorHandlerService
-  ) {
-    this.createForm();
-  }
-
-  async ngOnInit() {
-    this.collectionId = this.route.snapshot.paramMap.get('id');
-  }
-
-  createForm() {
-    this.assetForm = this.formBuilder.group({
-      name: ['', Validators.required],
-      manufacturer: ['', Validators.required],
-      model: ['', Validators.required],
-      serialNumber: ['', Validators.required],
-      manufactureDate: ['', Validators.required],
-    });
-  }
-
-  async onSubmit() {
-    if (this.assetForm.valid) {
-      const assetData = this.assetForm.value;
-      assetData.collectionId = this.collectionId;
-
-      try {
-        await this.errorHandler.showLoading('Creating asset...');
-
-        await this.assetService.createAsset(assetData);
-        this.errorHandler.showToast('Asset created successfully');
-
-        await this.errorHandler.hideLoading();
-        this.router.navigate(['/dashboard']);
-      } catch (error) {
-        await this.errorHandler.hideLoading();
-        this.errorHandler.handleError(error);
-      }
-    } else {
-      this.errorHandler.showToast('Please fill all required fields');
-    }
-  }
-
-  async showToast(message: string) {
-    const toast = await this.toastController.create({
-      message: message,
-      duration: 2000,
-      position: 'bottom'
-    });
-    toast.present();
-  }
-}
-
-```
-
-# src/app/asset-form/asset-form.page.spec.ts
-
-```ts
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { AssetFormPage } from './asset-form.page';
-
-describe('AssetFormPage', () => {
-  let component: AssetFormPage;
-  let fixture: ComponentFixture<AssetFormPage>;
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(AssetFormPage);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-});
-
-```
-
-# src/app/asset-form/asset-form.page.scss
-
-```scss
-
-```
-
-# src/app/asset-form/asset-form.page.html
-
-```html
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/dashboard"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Create Asset</ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content class="ion-padding">
-  <form [formGroup]="assetForm" (ngSubmit)="onSubmit()">
-    <ion-item>
-      <ion-label position="floating">Name</ion-label>
-      <ion-input formControlName="name" type="text"></ion-input>
-    </ion-item>
-
-    <ion-item>
-      <ion-label position="floating">Manufacturer</ion-label>
-      <ion-input formControlName="manufacturer" type="text"></ion-input>
-    </ion-item>
-
-    <ion-item>
-      <ion-label position="floating">Model</ion-label>
-      <ion-input formControlName="model" type="text"></ion-input>
-    </ion-item>
-
-    <ion-item>
-      <ion-label position="floating">Serial Number</ion-label>
-      <ion-input formControlName="serialNumber" type="text"></ion-input>
-    </ion-item>
-
-    <ion-item>
-      <ion-label position="floating">Manufacture Date</ion-label>
-      <ion-datetime formControlName="manufactureDate" display-format="DD/MM/YYYY"></ion-datetime>
-    </ion-item>
-
-    <ion-button expand="block" type="submit" [disabled]="!assetForm.valid"> Create Asset </ion-button>
-  </form>
-</ion-content>
-
-```
-
-# src/app/asset-form/asset-form.module.ts
-
-```ts
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-
-import { IonicModule } from '@ionic/angular';
-
-import { AssetFormPageRoutingModule } from './asset-form-routing.module';
-
-import { AssetFormPage } from './asset-form.page';
-
-@NgModule({
-  imports: [
-    CommonModule,
-    FormsModule,
-    IonicModule,
-    AssetFormPageRoutingModule,
-    ReactiveFormsModule
-  ],
-  declarations: [AssetFormPage]
-})
-export class AssetFormPageModule {}
-
-```
-
-# src/app/asset-form/asset-form-routing.module.ts
-
-```ts
-import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
-
-import { AssetFormPage } from './asset-form.page';
-
-const routes: Routes = [
-  {
-    path: '',
-    component: AssetFormPage
-  }
-];
-
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule],
-})
-export class AssetFormPageRoutingModule {}
-
-```
-
-# src/app/collection-form/collection-form.page.ts
-
-```ts
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { CollectionService } from 'src/app/services/collection.service';
-import { ErrorHandlerService } from 'src/app/services/error-handler.service';
-
-@Component({
-  selector: 'app-collection-form',
-  templateUrl: './collection-form.page.html',
-  styleUrls: ['./collection-form.page.scss'],
-})
-export class CollectionFormPage implements OnInit {
-  collectionForm: FormGroup = new FormGroup({});
-
-  constructor(
-    private formBuilder: FormBuilder,
-    private errorHandler: ErrorHandlerService,
-    private router: Router,
-    private collectionService: CollectionService
-  ) {
-    this.createForm();
-  }
-
-  ngOnInit() { }
-
-  createForm() {
-    this.collectionForm = this.formBuilder.group({
-      name: ['', Validators.required],
-      symbol: ['', Validators.required],
-      description: [''],
-    });
-  }
-
-  async onSubmit() {
-    if (this.collectionForm.valid) {
-      const assetData = this.collectionForm.value;
-
-      try {
-        await this.errorHandler.showLoading('Creating Collection...');
-
-        await this.collectionService.createCollection(assetData);
-        this.errorHandler.showToast('Collection created successfully');
-
-        await this.errorHandler.hideLoading();
-        this.router.navigate(['/dashboard']);
-      } catch (error) {
-        await this.errorHandler.hideLoading();
-        this.errorHandler.handleError(error);
-      }
-
-    } else {
-      this.errorHandler.showToast('Please fill all required fields');
-    }
-  }
-
-}
-
-```
-
-# src/app/collection-form/collection-form.page.spec.ts
-
-```ts
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { CollectionFormPage } from './collection-form.page';
-
-describe('CollectionFormPage', () => {
-  let component: CollectionFormPage;
-  let fixture: ComponentFixture<CollectionFormPage>;
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(CollectionFormPage);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-});
-
-```
-
-# src/app/collection-form/collection-form.page.scss
-
-```scss
-
-```
-
-# src/app/collection-form/collection-form.page.html
-
-```html
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/dashboard"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Create Collection</ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content class="ion-padding">
-  <form [formGroup]="collectionForm" (ngSubmit)="onSubmit()">
-
-    <ion-item>
-      <ion-label position="floating">Name</ion-label>
-      <ion-input formControlName="name" type="text"></ion-input>
-    </ion-item>
-
-    <ion-item>
-      <ion-label position="floating">Symbol</ion-label>
-      <ion-input formControlName="symbol" type="text"></ion-input>
-    </ion-item>
-
-    <ion-item>
-      <ion-label position="floating">Description</ion-label>
-      <ion-input formControlName="description" type="text"></ion-input>
-    </ion-item>
-
-    <ion-button expand="block" type="submit" [disabled]="!collectionForm.valid"> Create Collection </ion-button>
-  </form>
-</ion-content>
-
-```
-
-# src/app/collection-form/collection-form.module.ts
-
-```ts
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-
-import { IonicModule } from '@ionic/angular';
-
-import { CollectionFormPageRoutingModule } from './collection-form-routing.module';
-
-import { CollectionFormPage } from './collection-form.page';
-
-@NgModule({
-  imports: [
-    CommonModule,
-    FormsModule,
-    IonicModule,
-    CollectionFormPageRoutingModule,
-    ReactiveFormsModule
-  ],
-  declarations: [CollectionFormPage]
-})
-export class CollectionFormPageModule {}
-
-```
-
-# src/app/collection-form/collection-form-routing.module.ts
-
-```ts
-import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
-
-import { CollectionFormPage } from './collection-form.page';
-
-const routes: Routes = [
-  {
-    path: '',
-    component: CollectionFormPage
-  }
-];
-
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule],
-})
-export class CollectionFormPageRoutingModule {}
-
-```
-
-# src/app/asset-details/asset-details.page.ts
-
-```ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { AssetService } from '../services/asset.service';
-import { LoadingController } from '@ionic/angular';
-import { CollectionService } from '../services/collection.service';
-import { HederaService } from '../services/hedera.service';
-import { firstValueFrom, Subscription } from 'rxjs';
-
-@Component({
-  selector: 'app-asset-details',
-  templateUrl: './asset-details.page.html',
-  styleUrls: ['./asset-details.page.scss'],
-})
-export class AssetDetailsPage implements OnInit, OnDestroy {
-  public assets: any[] = [];
-  public collectionId: string | null = null;
-  error: string | null = null;
-  public newEvent: string = '';
-  private messageSubscription: Subscription = new Subscription();
-
-  constructor(
-    private route: ActivatedRoute,
-    private assetService: AssetService,
-    private loadingController: LoadingController,
-    private collectionService: CollectionService,
-    private hederaService: HederaService
-  ) { }
-
-  async ngOnInit() {
-    this.collectionId = this.route.snapshot.paramMap.get('id');
-    if (this.collectionId) {
-      await this.loadCollectionAssets(this.collectionId);
-    }
-  }
-
-  ngOnDestroy() {
-    if (this.messageSubscription) {
-      this.messageSubscription.unsubscribe();
-    }
-  }
-
-  async loadCollectionAssets(id: string) {
-    const loading = await this.loadingController.create({
-      message: 'Loading asset details...',
-    });
-    await loading.present();
-
-    try {
-      const assets = await this.collectionService.getCollectionAssets(id);
-      console.log('Assets:', assets);
-
-      this.assets = await Promise.all(
-        assets.map(async (asset) => {
-          const details = await this.assetService.getAssetDetails(asset.metadata);
-          console.log('Details:', details);
-
-          const messages = await this.hederaService.getMessages(details.topicId, new Date(0)).toPromise();
-          console.log('Messages:', messages);
-
-          const assetWithDetails = {
-            ...asset,
-            details,
-            events: messages
-          };
-
-          return assetWithDetails;
-        })
-      );
-
-      console.log('Assets:', this.assets);
-    } catch (error) {
-      this.error = 'Failed to load asset details';
-      console.error('Error loading asset details:', error);
-    } finally {
-      await loading.dismiss();
-    }
-  }
-
-  async publishEvent(asset: any) {
-    try {
-      console.log('Publishing event:', this.newEvent);
-      console.log('Asset:', asset);
-      await this.assetService.postAssetEvent(asset.details.topicId, this.newEvent);
-      this.newEvent = '';
-      asset.events.push(this.newEvent);
-    } catch (error) {
-      console.error('Error publishing event:', error);
-    }
-  }
-}
-
-```
-
-# src/app/asset-details/asset-details.page.spec.ts
-
-```ts
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { AssetDetailsPage } from './asset-details.page';
-
-describe('AssetDetailsPage', () => {
-  let component: AssetDetailsPage;
-  let fixture: ComponentFixture<AssetDetailsPage>;
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(AssetDetailsPage);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-});
-
-```
-
-# src/app/asset-details/asset-details.page.scss
-
-```scss
-
-```
-
-# src/app/asset-details/asset-details.page.html
-
-```html
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/dashboard"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Asset Details</ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content class="ion-padding">
-    <p>Asset details</p>
-    <ion-card *ngFor="let asset of assets">
-      <ion-card-header>
-        <ion-card-title>{{ asset.id }}</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <ion-list>
-          <ion-item>
-            <ion-label>Asset ID</ion-label>
-            <p slot="end">{{ asset.id }}</p>
-          </ion-item>
-          <ion-item>
-            <ion-label>Asset Owner</ion-label>
-            <p slot="end">{{ asset.owner }}</p>
-          </ion-item>
-          <ion-item>
-            <ion-label>Asset Serial Number</ion-label>
-            <p slot="end">{{ asset.serialNumber }}</p>
-          </ion-item>
-          <ion-item>
-            <ion-label>Asset Creation time</ion-label>
-            <p slot="end">{{ asset.creationTime }}</p>
-          </ion-item>
-          <ion-item>
-            <ion-label>Hedera File ID</ion-label>
-            <p slot="end">{{ asset.metadata }}</p>
-          </ion-item>
-        </ion-list>
-
-        <!-- Show metadata Content -->
-        <ion-list>
-          <ion-item>
-            <ion-label>Metadata</ion-label>
-          </ion-item>
-          <ion-item>
-            <ion-label>{{ asset.details | json }}</ion-label>
-          </ion-item>
-        </ion-list>
-
-        <!-- Show Events -->
-        <ion-list>
-          <ion-item>
-            <ion-label>Events</ion-label>
-          </ion-item>
-          <ion-item *ngFor="let event of asset.events">
-            <ion-label>{{ event }}</ion-label>
-          </ion-item>
-        </ion-list>
-
-        <!-- Input to submit a json to be published as an event -->
-        <ion-item>
-          <ion-label position="stacked">Event Payload</ion-label>
-          <ion-textarea [(ngModel)]="newEvent" placeholder="Enter the event payload"></ion-textarea>
-        </ion-item>
-        <ion-button (click)="publishEvent(asset)">Publish Event</ion-button>
-      </ion-card-content>
-    </ion-card>
-
-    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-      <ion-fab-button [routerLink]="'/asset-form/' + this.collectionId">
-        <ion-icon name="add"></ion-icon>
-      </ion-fab-button>
-    </ion-fab>
-
-</ion-content>
-
-```
-
-# src/app/asset-details/asset-details.module.ts
-
-```ts
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-
-import { IonicModule } from '@ionic/angular';
-
-import { AssetDetailsPageRoutingModule } from './asset-details-routing.module';
-
-import { AssetDetailsPage } from './asset-details.page';
-
-@NgModule({
-  imports: [
-    CommonModule,
-    FormsModule,
-    IonicModule,
-    AssetDetailsPageRoutingModule
-  ],
-  declarations: [AssetDetailsPage]
-})
-export class AssetDetailsPageModule {}
-
-```
-
-# src/app/asset-details/asset-details-routing.module.ts
-
-```ts
-import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
-
-import { AssetDetailsPage } from './asset-details.page';
-
-const routes: Routes = [
-  {
-    path: '',
-    component: AssetDetailsPage
-  }
-];
-
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule],
-})
-export class AssetDetailsPageRoutingModule {}
-
-```
 
 # src/app/services/hedera.service.ts
 
@@ -2839,12 +1807,13 @@ export class AuthService {
 ```ts
 import { Injectable } from '@angular/core';
 import axios from 'axios';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AssetService {
-  private apiUrl = 'http://localhost:3000/assets';
+  private apiUrl = `${environment.apiUrl}/assets`;
 
   constructor() { }
 
@@ -2885,38 +1854,18 @@ export class AssetService {
     }
   }
 
-  async createAsset(assetData: any): Promise<any> {
+  async createAsset(collectionId: string, assetData: any): Promise<any> {
 
     console.log('Creating asset', assetData);
 
     try {
-      const response = await axios.post(this.apiUrl, assetData, { headers: this.getHeaders() });
+      const response = await axios.post(this.apiUrl, {collectionId, assetData}, { headers: this.getHeaders() });
       return response.data;
     } catch (error) {
       console.error('Error creating asset', error);
       throw error;
     }
   }
-
-  // async updateAsset(id: string, assetData: any): Promise<any> {
-  //   try {
-  //     const response = await axios.put(`${this.apiUrl}/${id}`, assetData, { headers: this.getHeaders() });
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error(`Error updating asset ID ${id}`, error);
-  //     throw error;
-  //   }
-  // }
-
-  // async deleteAsset(id: string): Promise<any> {
-  //   try {
-  //     const response = await axios.delete(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error(`Error deleting asset ID ${id}`, error);
-  //     throw error;
-  //   }
-  // }
 
   async getAssetEvents(topicId: string, startTime?: Date): Promise<any[]> {
     try {
@@ -2939,81 +1888,1516 @@ export class AssetService {
       throw error;
     }
   }
-
-  // async getAssetMetadataHistory(fileId: string): Promise<any[]> {
-  //   try {
-  //     const response = await axios.get(`${this.apiUrl}/metadata-history/${fileId}`, { headers: this.getHeaders() });
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error(`Error fetching metadata history for file ID ${fileId}`, error);
-  //     throw error;
-  //   }
-  // }
 }
 
 ```
 
-# backend/src/models/create-asset.dto.ts
+# src/app/guards/auth.guard.ts
 
 ```ts
-import { IsString, IsDate } from 'class-validator';
+import { Injectable } from '@angular/core';
+import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree, Router } from '@angular/router';
+import { Observable } from 'rxjs';
+import { AuthService } from '../services/auth.service';
 
-export class CreateAssetDto {
-  @IsString()
-  name: string;
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthGuard implements CanActivate {
+  constructor(private authService: AuthService, private router: Router) {}
 
-  @IsString()
-  manufacturer: string;
-
-  @IsString()
-  model: string;
-
-  @IsString()
-  serialNumber: string;
-
-  @IsDate()
-  manufactureDate: Date;
-
-  @IsString()
-  collectionId: string;
-}
-
-```
-
-# backend/src/models/collection.model.ts
-
-```ts
-export class Collection {
-  id: string;
-  name: string;
-  symbol: string;
-  description: string;
-  createdAt: Date;
-
-  constructor(partial: Partial<Collection>) {
-    Object.assign(this, partial);
+  canActivate(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
+    if (this.authService.isLoggedIn()) {
+      return true;
+    } else {
+      return this.router.createUrlTree(['/login']);
+    }
   }
 }
 
 ```
 
-# backend/src/models/asset.model.ts
+# src/app/guards/auth.guard.spec.ts
 
 ```ts
-export class Asset {
-  name: string;
-  manufacturer: string;
-  model: string;
-  serialNumber: string;
-  manufactureDate: Date;
+import { TestBed } from '@angular/core/testing';
+import { CanActivateFn } from '@angular/router';
 
-  collectionId: string;
-  id: string;
-  topicId: string;
+import { authGuard } from './auth.guard';
 
-  constructor(partial: Partial<Asset>) {
-    Object.assign(this, partial);
+describe('authGuard', () => {
+  const executeGuard: CanActivateFn = (...guardParameters) => 
+      TestBed.runInInjectionContext(() => authGuard(...guardParameters));
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+  });
+
+  it('should be created', () => {
+    expect(executeGuard).toBeTruthy();
+  });
+});
+
+```
+
+# src/app/collection-form/collection-form.page.ts
+
+```ts
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { CollectionService } from 'src/app/services/collection.service';
+import { ErrorHandlerService } from 'src/app/services/error-handler.service';
+
+@Component({
+  selector: 'app-collection-form',
+  templateUrl: './collection-form.page.html',
+  styleUrls: ['./collection-form.page.scss'],
+})
+export class CollectionFormPage implements OnInit {
+  collectionForm: FormGroup = new FormGroup({});
+
+  constructor(
+    private formBuilder: FormBuilder,
+    private errorHandler: ErrorHandlerService,
+    private router: Router,
+    private collectionService: CollectionService
+  ) {
+    this.createForm();
   }
+
+  ngOnInit() { }
+
+  createForm() {
+    this.collectionForm = this.formBuilder.group({
+      name: ['', Validators.required],
+      symbol: ['', Validators.required],
+      description: [''],
+    });
+  }
+
+  async onSubmit() {
+    if (this.collectionForm.valid) {
+      const assetData = this.collectionForm.value;
+
+      try {
+        await this.errorHandler.showLoading('Creating Collection...');
+
+        await this.collectionService.createCollection(assetData);
+        this.errorHandler.showToast('Collection created successfully');
+
+        await this.errorHandler.hideLoading();
+        this.router.navigate(['/dashboard']);
+      } catch (error) {
+        await this.errorHandler.hideLoading();
+        this.errorHandler.handleError(error);
+      }
+
+    } else {
+      this.errorHandler.showToast('Please fill all required fields');
+    }
+  }
+
+}
+
+```
+
+# src/app/collection-form/collection-form.page.spec.ts
+
+```ts
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CollectionFormPage } from './collection-form.page';
+
+describe('CollectionFormPage', () => {
+  let component: CollectionFormPage;
+  let fixture: ComponentFixture<CollectionFormPage>;
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(CollectionFormPage);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+```
+
+# src/app/collection-form/collection-form.page.scss
+
+```scss
+
+```
+
+# src/app/collection-form/collection-form.page.html
+
+```html
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Create Collection</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="collectionForm" (ngSubmit)="onSubmit()">
+
+    <ion-item>
+      <ion-label position="floating">Name</ion-label>
+      <ion-input formControlName="name" type="text"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="floating">Symbol</ion-label>
+      <ion-input formControlName="symbol" type="text"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="floating">Description</ion-label>
+      <ion-input formControlName="description" type="text"></ion-input>
+    </ion-item>
+
+    <ion-button expand="block" type="submit" [disabled]="!collectionForm.valid"> Create Collection </ion-button>
+  </form>
+</ion-content>
+
+```
+
+# src/app/collection-form/collection-form.module.ts
+
+```ts
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+
+import { IonicModule } from '@ionic/angular';
+
+import { CollectionFormPageRoutingModule } from './collection-form-routing.module';
+
+import { CollectionFormPage } from './collection-form.page';
+
+@NgModule({
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonicModule,
+    CollectionFormPageRoutingModule,
+    ReactiveFormsModule
+  ],
+  declarations: [CollectionFormPage]
+})
+export class CollectionFormPageModule {}
+
+```
+
+# src/app/collection-form/collection-form-routing.module.ts
+
+```ts
+import { NgModule } from '@angular/core';
+import { Routes, RouterModule } from '@angular/router';
+
+import { CollectionFormPage } from './collection-form.page';
+
+const routes: Routes = [
+  {
+    path: '',
+    component: CollectionFormPage
+  }
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule],
+})
+export class CollectionFormPageRoutingModule {}
+
+```
+
+# src/app/dashboard/dashboard.page.ts
+
+```ts
+import { Component, OnInit } from '@angular/core';
+import { AssetService } from '../services/asset.service';
+import { CollectionService } from '../services/collection.service';
+import { ErrorHandlerService } from '../services/error-handler.service';
+import { AuthService } from '../services/auth.service';
+
+@Component({
+  selector: 'app-dashboard',
+  templateUrl: './dashboard.page.html',
+  styleUrls: ['./dashboard.page.scss'],
+})
+export class DashboardPage implements OnInit {
+  assets: any[] = [];
+  collections: any = [];
+  username: string = '';
+  hederaAccountId: string = '';
+  loading: boolean = true;
+
+  constructor(
+    private assetService: AssetService,
+    private collectionService: CollectionService,
+    private errorHandler: ErrorHandlerService,
+    private authService: AuthService
+  ) { }
+
+  ngOnInit() {
+    this.loadUserInfo();
+    this.loadCollections();
+  }
+
+  async loadUserInfo() {
+    const userInfo = await this.authService.getUserInfo();
+    console.log('User info', userInfo);
+    this.username = userInfo.username;
+    this.hederaAccountId = userInfo.hederaAccountId;
+  }
+
+  async loadCollections() {
+    try {
+      await this.errorHandler.showLoading('Loading collections...');
+      this.collections = await this.collectionService.getCollections();
+      console.log('Collections', this.collections);
+      await this.errorHandler.hideLoading();
+    } catch (error) {
+      await this.errorHandler.hideLoading();
+      this.errorHandler.handleError(error);
+    }
+  }
+
+  async doRefresh(event: any) {
+    try {
+      this.collections = await this.collectionService.getCollections();
+      this.errorHandler.showToast('Collections refreshed successfully');
+    } catch (error) {
+      this.errorHandler.handleError(error);
+    } finally {
+      event.target.complete();
+    }
+  }
+}
+
+```
+
+# src/app/dashboard/dashboard.page.spec.ts
+
+```ts
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { DashboardPage } from './dashboard.page';
+
+describe('DashboardPage', () => {
+  let component: DashboardPage;
+  let fixture: ComponentFixture<DashboardPage>;
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(DashboardPage);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+```
+
+# src/app/dashboard/dashboard.page.scss
+
+```scss
+.user-info-card {
+  --background: var(--ion-color-primary);
+  --color: var(--ion-color-primary-contrast);
+  margin-bottom: 20px;
+}
+
+.user-info-card ion-card-title {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+.collections-card {
+  --background: var(--ion-color-light);
+}
+
+.collection-item {
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  margin-bottom: 10px;
+  --background: var(--ion-color-light);
+  --border-radius: 8px;
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.collection-item ion-label h2 {
+  font-weight: bold;
+  color: var(--ion-color-dark);
+}
+
+.collection-item ion-note {
+  font-size: 0.8em;
+  color: var(--ion-color-medium);
+}
+
+.create-collection-btn {
+  margin-top: 20px;
+}
+
+```
+
+# src/app/dashboard/dashboard.page.html
+
+```html
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title class="ion-text-center">Dashboard</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-card class="user-info-card">
+    <ion-card-header>
+      <ion-card-title>Welcome, {{ username }}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p><strong>Hedera Account ID:</strong> {{ hederaAccountId }}</p>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card class="collections-card">
+    <ion-card-header>
+      <ion-card-title>Your Collections</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list>
+        <ion-item *ngFor="let collection of collections; let i = index" [routerLink]="'/asset/' + collection.id" class="collection-item" [attr.data-index]="i">
+          <ion-label>
+            <h2>{{ collection.name }}</h2>
+            <p>{{ collection.symbol }}</p>
+          </ion-label>
+          <ion-note slot="end">{{ collection.id }}</ion-note>
+        </ion-item>
+      </ion-list>
+      <ion-button expand="block" routerLink="/collection-form" class="create-collection-btn">
+        Create New Collection
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+</ion-content>
+
+```
+
+# src/app/dashboard/dashboard.module.ts
+
+```ts
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+
+import { IonicModule } from '@ionic/angular';
+
+import { DashboardPageRoutingModule } from './dashboard-routing.module';
+
+import { DashboardPage } from './dashboard.page';
+
+@NgModule({
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonicModule,
+    DashboardPageRoutingModule,
+  ],
+  declarations: [DashboardPage]
+})
+export class DashboardPageModule {}
+
+```
+
+# src/app/dashboard/dashboard-routing.module.ts
+
+```ts
+import { NgModule } from '@angular/core';
+import { Routes, RouterModule } from '@angular/router';
+
+import { DashboardPage } from './dashboard.page';
+
+const routes: Routes = [
+  {
+    path: '',
+    component: DashboardPage
+  }
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule],
+})
+export class DashboardPageRoutingModule {}
+
+```
+
+# src/app/asset-form/asset-form.page.ts
+
+```ts
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AssetService } from '../services/asset.service';
+import { ErrorHandlerService } from '../services/error-handler.service';
+import { IliotAsset, createEmptyIliotAsset } from '../shared/modules/iliot-asset.module';
+
+@Component({
+  selector: 'app-asset-form',
+  templateUrl: './asset-form.page.html',
+  styleUrls: ['./asset-form.page.scss'],
+})
+export class AssetFormPage implements OnInit {
+  assetForm: FormGroup = new FormGroup({});
+  collectionId: string | null = null;
+
+  constructor(
+    private formBuilder: FormBuilder,
+    private assetService: AssetService,
+    private route: ActivatedRoute,
+    private router: Router,
+    private errorHandler: ErrorHandlerService
+  ) {
+    this.createForm();
+  }
+
+  ngOnInit() {
+    this.collectionId = this.route.snapshot.paramMap.get('id');
+  }
+
+  createForm() {
+    const mockAsset: IliotAsset = createEmptyIliotAsset();
+    mockAsset.machine = {
+      name: "Industrial Pump XYZ",
+      machine_type: "Centrifugal Pump",
+      serial_number: "ABC123XYZ",
+      manufacturer: "PumpCo Industries",
+      model: "SuperPump 3000",
+      manufacture_year: 2022,
+      customer_id: "CUST001",
+      site_id: "SITE123",
+      project_id: "PROJ456",
+      acquisition_date: "2023-01-15",
+      purchase_date: "2023-01-10",
+      installation_date: "2023-02-01",
+      warranty_in_months: 24,
+      warranty_start_date: "2023-02-01",
+      owner: "ACME Corporation",
+      cost_center: "CC001",
+      account: "1234-5678-9012",
+      price: 15000.00,
+      criticality: "2",
+      initial_reading_date: "2023-02-01",
+      last_reading_date: "2023-08-01",
+      load_working_time: 1000,
+      working_time: 2000,
+      sensors_attributes: [
+        {
+          sensor_type_id: "TEMP001",
+          name: "Temperature Sensor 1",
+          vendor_code: "TS1234",
+          start_time: "2023-02-01",
+          has_temperature_monitor_1: true,
+          temperature_monitor_value_1: 80,
+          warning_temperature_monitor_1: 70,
+          temperature_monitor_name_1: "High Temperature Alert",
+          has_geofence: false,
+          geofence_distance: undefined
+        }
+      ],
+      has_virtual_sensor: true,
+      virtual_sensor_name: "Virtual Flow Meter",
+      virtual_sensor_daily_hours: 16,
+      virtual_sensor_days_in_week: 5,
+      obs: "This pump is crucial for our main production line.",
+      machine_modules_attributes: [
+        {
+          serial_number: "MOD001",
+          manufacturer: "ModuleCo",
+          machine_module_model: "Efficiency Booster X1",
+          machine_module_type_id: "EB001",
+          module_type_machine: "Efficiency Module",
+          obs: "Increases pump efficiency by 15%"
+        }
+      ]
+    };
+
+    this.assetForm = this.formBuilder.group({
+      name: [mockAsset.machine.name, Validators.required],
+      machine_type: [mockAsset.machine.machine_type, Validators.required],
+      serial_number: [mockAsset.machine.serial_number, Validators.required],
+      manufacturer: [mockAsset.machine.manufacturer, Validators.required],
+      model: [mockAsset.machine.model, Validators.required],
+      manufacture_year: [mockAsset.machine.manufacture_year, [Validators.required, Validators.min(1900), Validators.max(new Date().getFullYear())]],
+      customer_id: [mockAsset.machine.customer_id, Validators.required],
+      site_id: [mockAsset.machine.site_id, Validators.required],
+      project_id: [mockAsset.machine.project_id, Validators.required],
+      acquisition_date: [mockAsset.machine.acquisition_date, Validators.required],
+      purchase_date: [mockAsset.machine.purchase_date, Validators.required],
+      installation_date: [mockAsset.machine.installation_date, Validators.required],
+      warranty_in_months: [mockAsset.machine.warranty_in_months, [Validators.required, Validators.min(0)]],
+      warranty_start_date: [mockAsset.machine.warranty_start_date, Validators.required],
+      owner: [mockAsset.machine.owner, Validators.required],
+      cost_center: [mockAsset.machine.cost_center, Validators.required],
+      account: [mockAsset.machine.account, Validators.required],
+      price: [mockAsset.machine.price, [Validators.required, Validators.min(0)]],
+      criticality: [mockAsset.machine.criticality, [Validators.required, Validators.pattern(/^[123]$/)]],
+      initial_reading_date: [mockAsset.machine.initial_reading_date, Validators.required],
+      last_reading_date: [mockAsset.machine.last_reading_date, Validators.required],
+      load_working_time: [mockAsset.machine.load_working_time, [Validators.required, Validators.min(0)]],
+      working_time: [mockAsset.machine.working_time, [Validators.required, Validators.min(0)]],
+      sensors_attributes: this.formBuilder.array(mockAsset.machine.sensors_attributes.map(sensor => this.createSensorFormGroup(sensor))),
+      has_virtual_sensor: [mockAsset.machine.has_virtual_sensor],
+      virtual_sensor_name: [mockAsset.machine.virtual_sensor_name],
+      virtual_sensor_daily_hours: [mockAsset.machine.virtual_sensor_daily_hours, [Validators.min(0), Validators.max(24)]],
+      virtual_sensor_days_in_week: [mockAsset.machine.virtual_sensor_days_in_week, [Validators.min(0), Validators.max(7)]],
+      obs: [mockAsset.machine.obs],
+      machine_modules_attributes: this.formBuilder.array(mockAsset.machine.machine_modules_attributes.map(module => this.createMachineModuleFormGroup(module)))
+    });
+  }
+
+  createMachineModuleFormGroup(module: any) {
+    return this.formBuilder.group({
+      serial_number: [module.serial_number, Validators.required],
+      manufacturer: [module.manufacturer, Validators.required],
+      machine_module_model: [module.machine_module_model, Validators.required],
+      machine_module_type_id: [module.machine_module_type_id],
+      module_type_machine: [module.module_type_machine, Validators.required],
+      obs: [module.obs]
+    });
+  }
+
+  createSensorFormGroup(sensor: any) {
+    return this.formBuilder.group({
+      sensor_type_id: [sensor.sensor_type_id, Validators.required],
+      name: [sensor.name, Validators.required],
+      vendor_code: [sensor.vendor_code, Validators.required],
+      start_time: [sensor.start_time, Validators.required],
+      has_temperature_monitor_1: [sensor.has_temperature_monitor_1],
+      temperature_monitor_value_1: [sensor.temperature_monitor_value_1],
+      warning_temperature_monitor_1: [sensor.warning_temperature_monitor_1],
+      temperature_monitor_name_1: [sensor.temperature_monitor_name_1],
+      has_geofence: [sensor.has_geofence],
+      geofence_distance: [sensor.geofence_distance]
+    });
+  }
+
+  get machineForm() {
+    return this.assetForm.get('machine') as FormGroup;
+  }
+
+  removeSensor(index: number) {
+    this.sensors.removeAt(index);
+  }
+
+  removeMachineModule(index: number) {
+    this.machineModules.removeAt(index);
+  }
+
+  addSensor() {
+    const sensorForm = this.formBuilder.group({
+      sensor_type_id: ['', Validators.required],
+      name: ['', Validators.required],
+      vendor_code: ['', Validators.required],
+      start_time: ['', Validators.required],
+      has_temperature_monitor_1: [false],
+      temperature_monitor_value_1: [null],
+      warning_temperature_monitor_1: [null],
+      temperature_monitor_name_1: [''],
+      has_geofence: [false],
+      geofence_distance: [null]
+    });
+
+    this.sensors.push(sensorForm);
+  }
+
+  addMachineModule() {
+    const moduleForm = this.formBuilder.group({
+      serial_number: ['', Validators.required],
+      manufacturer: ['', Validators.required],
+      machine_module_model: ['', Validators.required],
+      machine_module_type_id: [''],
+      module_type_machine: ['', Validators.required],
+      obs: ['']
+    });
+
+    this.machineModules.push(moduleForm);
+  }
+
+  get sensors() {
+    return this.assetForm.get('sensors_attributes') as FormArray;
+  }
+
+  get machineModules() {
+    return this.assetForm.get('machine_modules_attributes') as FormArray;
+  }
+
+  async onSubmit() {
+    if (this.assetForm.valid && this.collectionId) {
+      const assetData: IliotAsset = {
+        machine: this.assetForm.value
+      };
+      assetData.machine.id = this.collectionId;
+
+      try {
+        await this.errorHandler.showLoading('Creating asset...');
+        await this.assetService.createAsset(this.collectionId, assetData);
+        this.errorHandler.showToast('Asset created successfully');
+        await this.errorHandler.hideLoading();
+        this.router.navigate(['/dashboard']);
+      } catch (error) {
+        await this.errorHandler.hideLoading();
+        this.errorHandler.handleError(error);
+      }
+    } else {
+      this.errorHandler.showToast('Please fill all required fields correctly');
+    }
+  }
+}
+
+```
+
+# src/app/asset-form/asset-form.page.spec.ts
+
+```ts
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { AssetFormPage } from './asset-form.page';
+
+describe('AssetFormPage', () => {
+  let component: AssetFormPage;
+  let fixture: ComponentFixture<AssetFormPage>;
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(AssetFormPage);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+```
+
+# src/app/asset-form/asset-form.page.scss
+
+```scss
+
+```
+
+# src/app/asset-form/asset-form.page.html
+
+```html
+<ion-content class="ion-padding">
+  <form [formGroup]="assetForm" (ngSubmit)="onSubmit()">
+    <h2>Create Asset</h2>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Basic Information</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="floating">Name (ID/TAG)</ion-label>
+          <ion-input formControlName="name"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Type</ion-label>
+          <ion-input formControlName="machine_type"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Serial Number</ion-label>
+          <ion-input formControlName="serial_number"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Manufacturer</ion-label>
+          <ion-input formControlName="manufacturer"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Model</ion-label>
+          <ion-input formControlName="model"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Manufacture Year</ion-label>
+          <ion-input type="number" formControlName="manufacture_year"></ion-input>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Location and Ownership</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="floating">Customer ID</ion-label>
+          <ion-input formControlName="customer_id"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Site ID</ion-label>
+          <ion-input formControlName="site_id"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Project/Contract ID</ion-label>
+          <ion-input formControlName="project_id"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Owner</ion-label>
+          <ion-input formControlName="owner"></ion-input>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Dates and Warranty</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="floating">Acquisition Date</ion-label>
+          <ion-datetime formControlName="acquisition_date"></ion-datetime>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Purchase Date</ion-label>
+          <ion-datetime formControlName="purchase_date"></ion-datetime>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Installation Date</ion-label>
+          <ion-datetime formControlName="installation_date"></ion-datetime>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Warranty (months)</ion-label>
+          <ion-input type="number" formControlName="warranty_in_months"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Warranty Start Date</ion-label>
+          <ion-datetime formControlName="warranty_start_date"></ion-datetime>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Financial Information</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="floating">Cost Center</ion-label>
+          <ion-input formControlName="cost_center"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Account</ion-label>
+          <ion-input formControlName="account"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Price</ion-label>
+          <ion-input type="number" formControlName="price"></ion-input>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Operational Information</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="floating">Criticality (1-3)</ion-label>
+          <ion-select formControlName="criticality">
+            <ion-select-option value="1">1</ion-select-option>
+            <ion-select-option value="2">2</ion-select-option>
+            <ion-select-option value="3">3</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Initial Reading Date</ion-label>
+          <ion-datetime formControlName="initial_reading_date"></ion-datetime>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Last Reading Date</ion-label>
+          <ion-datetime formControlName="last_reading_date"></ion-datetime>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Load Working Time</ion-label>
+          <ion-input type="number" formControlName="load_working_time"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Working Time</ion-label>
+          <ion-input type="number" formControlName="working_time"></ion-input>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Sensors</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div formArrayName="sensors_attributes">
+          <ion-card *ngFor="let sensor of sensors.controls; let i = index">
+            <ion-card-content [formGroupName]="i">
+              <ion-item>
+                <ion-label position="floating">Sensor Type ID</ion-label>
+                <ion-input formControlName="sensor_type_id"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Name</ion-label>
+                <ion-input formControlName="name"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Vendor Code</ion-label>
+                <ion-input formControlName="vendor_code"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Start Time</ion-label>
+                <ion-datetime formControlName="start_time"></ion-datetime>
+              </ion-item>
+              <ion-item>
+                <ion-label>Has Temperature Monitor</ion-label>
+                <ion-toggle formControlName="has_temperature_monitor_1"></ion-toggle>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Temperature Monitor Value</ion-label>
+                <ion-input type="number" formControlName="temperature_monitor_value_1"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Warning Temperature Monitor</ion-label>
+                <ion-input type="number" formControlName="warning_temperature_monitor_1"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Temperature Monitor Name</ion-label>
+                <ion-input formControlName="temperature_monitor_name_1"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label>Has Geofence</ion-label>
+                <ion-toggle formControlName="has_geofence"></ion-toggle>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Geofence Distance (km)</ion-label>
+                <ion-input type="number" formControlName="geofence_distance"></ion-input>
+              </ion-item>
+              <ion-button fill="clear" (click)="removeSensor(i)">Remove Sensor</ion-button>
+            </ion-card-content>
+          </ion-card>
+        </div>
+        <ion-button (click)="addSensor()">Add Sensor</ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Virtual Sensor</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label>Has Virtual Sensor</ion-label>
+          <ion-toggle formControlName="has_virtual_sensor"></ion-toggle>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Virtual Sensor Name</ion-label>
+          <ion-input formControlName="virtual_sensor_name"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Daily Hours</ion-label>
+          <ion-input type="number" formControlName="virtual_sensor_daily_hours"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Days in Week</ion-label>
+          <ion-input type="number" formControlName="virtual_sensor_days_in_week"></ion-input>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Machine Modules</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div formArrayName="machine_modules_attributes">
+          <ion-card *ngFor="let module of machineModules.controls; let i = index">
+            <ion-card-content [formGroupName]="i">
+              <ion-item>
+                <ion-label position="floating">Serial Number</ion-label>
+                <ion-input formControlName="serial_number"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Manufacturer</ion-label>
+                <ion-input formControlName="manufacturer"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Machine Module Model</ion-label>
+                <ion-input formControlName="machine_module_model"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Machine Module Type ID</ion-label>
+                <ion-input formControlName="machine_module_type_id"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Module Type Machine</ion-label>
+                <ion-input formControlName="module_type_machine"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Observations</ion-label>
+                <ion-textarea formControlName="obs"></ion-textarea>
+              </ion-item>
+              <ion-button fill="clear" (click)="removeMachineModule(i)">Remove Module</ion-button>
+            </ion-card-content>
+          </ion-card>
+        </div>
+        <ion-button (click)="addMachineModule()">Add Machine Module</ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Observations</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="floating">Observations</ion-label>
+          <ion-textarea formControlName="obs"></ion-textarea>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-button expand="block" type="submit" [disabled]="!assetForm.valid">Create Asset</ion-button>
+  </form>
+</ion-content>
+
+```
+
+# src/app/asset-form/asset-form.module.ts
+
+```ts
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+
+import { IonicModule } from '@ionic/angular';
+
+import { AssetFormPageRoutingModule } from './asset-form-routing.module';
+
+import { AssetFormPage } from './asset-form.page';
+
+@NgModule({
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonicModule,
+    AssetFormPageRoutingModule,
+    ReactiveFormsModule
+  ],
+  declarations: [AssetFormPage]
+})
+export class AssetFormPageModule {}
+
+```
+
+# src/app/asset-form/asset-form-routing.module.ts
+
+```ts
+import { NgModule } from '@angular/core';
+import { Routes, RouterModule } from '@angular/router';
+
+import { AssetFormPage } from './asset-form.page';
+
+const routes: Routes = [
+  {
+    path: '',
+    component: AssetFormPage
+  }
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule],
+})
+export class AssetFormPageRoutingModule {}
+
+```
+
+# src/app/login/login.page.ts
+
+```ts
+import { Component } from '@angular/core';
+import { AuthService } from '../services/auth.service';
+import { Router } from '@angular/router';
+import { AlertController } from '@ionic/angular';
+
+@Component({
+  selector: 'app-login',
+  templateUrl: './login.page.html',
+  styleUrls: ['./login.page.scss'],
+})
+export class LoginPage {
+  username: string = '';
+  password: string = '';
+
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private alertController: AlertController
+  ) {}
+
+  async login() {
+    try {
+      const result = await this.authService.login(this.username, this.password).toPromise();
+      console.log('Login successful', result);
+      this.router.navigate(['/dashboard']);
+    } catch (error) {
+      console.error('Login failed', error);
+      this.showErrorAlert(error);
+    }
+  }
+
+  async showErrorAlert(error: any) {
+    const alert = await this.alertController.create({
+      header: 'Login Failed',
+      message: error.error?.message || 'An unexpected error occurred.',
+      buttons: ['OK']
+    });
+
+    await alert.present();
+  }
+}
+
+```
+
+# src/app/login/login.page.spec.ts
+
+```ts
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { LoginPage } from './login.page';
+
+describe('LoginPage', () => {
+  let component: LoginPage;
+  let fixture: ComponentFixture<LoginPage>;
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(LoginPage);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+```
+
+# src/app/login/login.page.scss
+
+```scss
+
+```
+
+# src/app/login/login.page.html
+
+```html
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Login</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form (ngSubmit)="login()">
+    <ion-item>
+      <ion-label position="floating">Username</ion-label>
+      <ion-input type="text" [(ngModel)]="username" name="username" required></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="floating">Password</ion-label>
+      <ion-input type="password" [(ngModel)]="password" name="password" required></ion-input>
+    </ion-item>
+    <ion-button expand="block" type="submit" class="ion-margin-top">Login</ion-button>
+  </form>
+</ion-content>
+
+```
+
+# src/app/login/login.module.ts
+
+```ts
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+
+import { IonicModule } from '@ionic/angular';
+
+import { LoginPageRoutingModule } from './login-routing.module';
+
+import { LoginPage } from './login.page';
+
+@NgModule({
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonicModule,
+    LoginPageRoutingModule
+  ],
+  declarations: [LoginPage]
+})
+export class LoginPageModule {}
+
+```
+
+# src/app/login/login-routing.module.ts
+
+```ts
+import { NgModule } from '@angular/core';
+import { Routes, RouterModule } from '@angular/router';
+
+import { LoginPage } from './login.page';
+
+const routes: Routes = [
+  {
+    path: '',
+    component: LoginPage
+  }
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule],
+})
+export class LoginPageRoutingModule {}
+
+```
+
+# src/app/asset-details/asset-details.page.ts
+
+```ts
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { AssetService } from '../services/asset.service';
+import { LoadingController } from '@ionic/angular';
+import { CollectionService } from '../services/collection.service';
+import { HederaService } from '../services/hedera.service';
+import { firstValueFrom, Subscription } from 'rxjs';
+
+@Component({
+  selector: 'app-asset-details',
+  templateUrl: './asset-details.page.html',
+  styleUrls: ['./asset-details.page.scss'],
+})
+export class AssetDetailsPage implements OnInit, OnDestroy {
+  public assets: any[] = [];
+  public collectionId: string | null = null;
+  error: string | null = null;
+  public newEvent: string = '';
+  private messageSubscription: Subscription = new Subscription();
+
+  constructor(
+    private route: ActivatedRoute,
+    private assetService: AssetService,
+    private loadingController: LoadingController,
+    private collectionService: CollectionService,
+    private hederaService: HederaService
+  ) { }
+
+  async ngOnInit() {
+    this.collectionId = this.route.snapshot.paramMap.get('id');
+    if (this.collectionId) {
+      await this.loadCollectionAssets(this.collectionId);
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.messageSubscription) {
+      this.messageSubscription.unsubscribe();
+    }
+  }
+
+  async loadCollectionAssets(id: string) {
+    const loading = await this.loadingController.create({
+      message: 'Loading asset details...',
+    });
+    await loading.present();
+
+    try {
+      const assets = await this.collectionService.getCollectionAssets(id);
+      console.log('Assets:', assets);
+
+      this.assets = await Promise.all(
+        assets.map(async (asset) => {
+          const details = await this.assetService.getAssetDetails(asset.metadata);
+          console.log('Details:', details);
+
+          const messages = await this.hederaService.getMessages(details.topicId, new Date(0)).toPromise();
+          console.log('Messages:', messages);
+
+          const assetWithDetails = {
+            ...asset,
+            details,
+            events: messages
+          };
+
+          return assetWithDetails;
+        })
+      );
+
+      console.log('Assets:', this.assets);
+    } catch (error) {
+      this.error = 'Failed to load asset details';
+      console.error('Error loading asset details:', error);
+    } finally {
+      await loading.dismiss();
+    }
+  }
+
+  async publishEvent(asset: any) {
+    try {
+      console.log('Publishing event:', this.newEvent);
+      console.log('Asset:', asset);
+      await this.assetService.postAssetEvent(asset.details.topicId, this.newEvent);
+      this.newEvent = '';
+      asset.events.push(this.newEvent);
+    } catch (error) {
+      console.error('Error publishing event:', error);
+    }
+  }
+}
+
+```
+
+# src/app/asset-details/asset-details.page.spec.ts
+
+```ts
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { AssetDetailsPage } from './asset-details.page';
+
+describe('AssetDetailsPage', () => {
+  let component: AssetDetailsPage;
+  let fixture: ComponentFixture<AssetDetailsPage>;
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(AssetDetailsPage);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+```
+
+# src/app/asset-details/asset-details.page.scss
+
+```scss
+.asset-card {
+  margin-bottom: 20px;
+}
+ion-card-title {
+  font-size: 1.2em;
+  color: var(--ion-color-primary);
+}
+ion-item {
+  --padding-start: 10px;
+  --inner-padding-end: 10px;
+}
+ion-label {
+  font-weight: bold;
+}
+ion-textarea {
+  margin-top: 10px;
+}
+
+```
+
+# src/app/asset-details/asset-details.page.html
+
+```html
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Asset Details</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card *ngFor="let asset of assets" class="asset-card">
+    <ion-card-header>
+      <ion-card-title>{{ asset.id }}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list>
+        <ion-item>
+          <ion-label>Asset ID</ion-label>
+          <p slot="end">{{ asset.id }}</p>
+        </ion-item>
+        <ion-item>
+          <ion-label>Asset Owner</ion-label>
+          <p slot="end">{{ asset.owner }}</p>
+        </ion-item>
+        <ion-item>
+          <ion-label>Asset Serial Number</ion-label>
+          <p slot="end">{{ asset.serialNumber }}</p>
+        </ion-item>
+        <ion-item>
+          <ion-label>Asset Creation Time</ion-label>
+          <p slot="end">{{ asset.creationTime }}</p>
+        </ion-item>
+        <ion-item>
+          <ion-label>Hedera File ID</ion-label>
+          <p slot="end">{{ asset.metadata }}</p>
+        </ion-item>
+      </ion-list>
+
+      <ion-list>
+        <ion-item>
+          <ion-label>Metadata</ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-label>{{ asset.details | json }}</ion-label>
+        </ion-item>
+      </ion-list>
+
+      <ion-list>
+        <ion-item>
+          <ion-label>Events</ion-label>
+        </ion-item>
+        <ion-item *ngFor="let event of asset.events">
+          <ion-label>{{ event }}</ion-label>
+        </ion-item>
+      </ion-list>
+
+      <ion-item>
+        <ion-label position="stacked">Event Payload</ion-label>
+        <ion-textarea [(ngModel)]="newEvent" placeholder="Enter the event payload"></ion-textarea>
+      </ion-item>
+      <ion-button expand="block" (click)="publishEvent(asset)">Publish Event</ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button [routerLink]="'/asset-form/' + collectionId">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>
+
+```
+
+# src/app/asset-details/asset-details.module.ts
+
+```ts
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+
+import { IonicModule } from '@ionic/angular';
+
+import { AssetDetailsPageRoutingModule } from './asset-details-routing.module';
+
+import { AssetDetailsPage } from './asset-details.page';
+
+@NgModule({
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonicModule,
+    AssetDetailsPageRoutingModule
+  ],
+  declarations: [AssetDetailsPage]
+})
+export class AssetDetailsPageModule {}
+
+```
+
+# src/app/asset-details/asset-details-routing.module.ts
+
+```ts
+import { NgModule } from '@angular/core';
+import { Routes, RouterModule } from '@angular/router';
+
+import { AssetDetailsPage } from './asset-details.page';
+
+const routes: Routes = [
+  {
+    path: '',
+    component: AssetDetailsPage
+  }
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule],
+})
+export class AssetDetailsPageRoutingModule {}
+
+```
+
+# backend/src/users/users.service.ts
+
+```ts
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+
+@Injectable()
+export class UsersService {
+  private readonly users: any[];
+
+  constructor(private configService: ConfigService) {
+    this.users = [
+      {
+        hederaAccountId: this.configService.get<string>('HEDERA_ACCOUNT_ID'),
+        username: 'leco',
+        password: '$2b$10$4zpsMBKFFkcj8OY4CJmuruf8Vedv4CS7pI5Q6/lfdggT5niK/x3KW',
+      },
+    ];
+  }
+
+  async findOne(username: string): Promise<any | undefined> {
+    return this.users.find(user => user.username === username);
+  }
+}
+
+```
+
+# backend/src/users/users.module.ts
+
+```ts
+import { Module } from '@nestjs/common';
+import { UsersService } from './users.service';
+import { ConfigModule } from '@nestjs/config';
+
+@Module({
+  imports: [ConfigModule],
+  providers: [UsersService],
+  exports: [UsersService],
+})
+export class UsersModule {}
+
+```
+
+# backend/src/users/user.model.ts
+
+```ts
+export class User {
+  hederaAccountId: string;
+  username: string;
+  password: string;
 }
 
 ```
@@ -3149,7 +3533,7 @@ export class HederaService implements OnModuleInit, OnModuleDestroy {
     return collections;
   }
 
-  async getNFTsInCollection(collectionId: string): Promise<any[]> {
+  async getNFTsInCollection(collectionId: string, limit: number = 10, startAfter: number = 0): Promise<any[]> {
     const nfts: any[] = [];
     const tokenId = TokenId.fromString(collectionId);
 
@@ -3164,15 +3548,14 @@ export class HederaService implements OnModuleInit, OnModuleDestroy {
       }
 
       const totalSupply = tokenInfo.totalSupply.toNumber();
+      const endIndex = Math.min(startAfter + limit, totalSupply);
 
-      for (let i = 1; i <= totalSupply; i++) {
+      for (let i = startAfter + 1; i <= endIndex; i++) {
         try {
           const nftId = new NftId(tokenId, i);
           const nftInfo = await new TokenNftInfoQuery()
             .setNftId(nftId)
             .execute(this.client);
-
-          // this.logger.debug(`NFT ${i} info:`, JSON.stringify(nftInfo, null, 2));
 
           if (nftInfo && nftInfo.length > 0 && nftInfo[0].accountId) {
             nfts.push({
@@ -3238,6 +3621,7 @@ export class HederaService implements OnModuleInit, OnModuleDestroy {
 
   async mintNFT(collectionId: string, metadata: any): Promise<string> {
     try {
+      console.log('Minting NFT with metadata:', metadata, 'for collection:', collectionId);
       const supplyKey = PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY'));
 
       // Cria um arquivo imutável com os metadados
@@ -3284,18 +3668,46 @@ export class HederaService implements OnModuleInit, OnModuleDestroy {
     return JSON.parse(contents.toString());
   }
 
-  async getNFTInfo(tokenId: string): Promise<any> {
-    const query = new TokenInfoQuery().setTokenId(tokenId);
-    const tokenInfo = await this.executeWithRetry(() => query.execute(this.client));
+  async getCollectionInfo(tokenId: string): Promise<any> {
+    try {
+      const query = new TokenInfoQuery().setTokenId(TokenId.fromString(tokenId));
+      const tokenInfo = await this.executeWithRetry(() => query.execute(this.client));
 
-    const info = {
-      name: tokenInfo.name,
-      symbol: tokenInfo.symbol,
-      totalSupply: tokenInfo.totalSupply.toString(),
-      maxSupply: tokenInfo.maxSupply.toString(),
-    };
+      return {
+        tokenId: tokenId,
+        name: tokenInfo.name,
+        symbol: tokenInfo.symbol,
+        totalSupply: tokenInfo.totalSupply.toString(),
+        maxSupply: tokenInfo.maxSupply.toString(),
+      };
+    } catch (error) {
+      console.error(`Error fetching collection info for token ${tokenId}:`, error);
+      throw error;
+    }
+  }
 
-    return info;
+  async getNFTInfo(tokenId: string, serialNumber: string): Promise<any> {
+    try {
+      const nftId = new NftId(TokenId.fromString(tokenId), serialNumber);
+      const nftInfo = await new TokenNftInfoQuery()
+        .setNftId(nftId)
+        .execute(this.client);
+
+      if (nftInfo.length === 0) {
+        throw new Error('NFT not found');
+      }
+
+      return {
+        tokenId: nftInfo[0].nftId.tokenId.toString(),
+        serialNumber: nftInfo[0].nftId.serial.toString(),
+        owner: nftInfo[0].accountId.toString(),
+        metadata: nftInfo[0].metadata,
+        creationTime: nftInfo[0].creationTime.toDate(),
+      };
+    } catch (error) {
+      console.error(`Error fetching NFT info for token ${tokenId} and serial ${serialNumber}:`, error);
+      throw error;
+    }
   }
 
   async createTopic(assetData: any): Promise<string> {
@@ -3438,14 +3850,587 @@ export class HederaController {
     return this.hederaService.mintNFT(body.tokenId, body.metadata);
   }
 
-  @Get('nft/:tokenId')
-  async getNFTInfo(@Param('tokenId') tokenId: string) {
-    return this.hederaService.getNFTInfo(tokenId);
+  @Get('colleciton/:id')
+  async getCollectionInfo(@Param('id') tokenId: string) {
+    return this.hederaService.getCollectionInfo(tokenId);
   }
 
   @Get('messages')
   async getMessages( @Query('topicId') topicId: string, @Query('startTime') startTime: string ): Promise<any> {
     return this.hederaService.getMessages(topicId, new Date(startTime), 10, 1000);
+  }
+}
+
+```
+
+# backend/src/collections/collection.service.ts
+
+```ts
+import { Injectable } from '@nestjs/common';
+import { HederaService } from '../hedera/hedera.service';
+import { Collection } from '../models/collection.model';
+import { Asset } from '../models/asset.model';
+
+@Injectable()
+export class CollectionService {
+  constructor(private readonly hederaService: HederaService) {}
+
+  async createCollection(name: string, symbol: string, description: string): Promise<Collection> {
+    const tokenId = await this.hederaService.createNFTCollection(name, symbol);
+    return new Collection({
+      id: tokenId,
+      name,
+      symbol,
+      description,
+      createdAt: new Date()
+    });
+  }
+
+  async getCollection(collectionId: string): Promise<Collection> {
+    const info = await this.hederaService.getCollectionInfo(collectionId);
+    return new Collection({
+      id: collectionId,
+      name: info.name,
+      symbol: info.symbol,
+      description: 'Description not available', // Hedera não fornece descrição no TokenInfo
+      createdAt: new Date() // Hedera não fornece a data de criação, então usamos a data atual
+    });
+  }
+
+  async getCollectionsAndNFTs(hederaAccountId) {
+    console.log('hederaAccountId', hederaAccountId);
+    const collectionIds = await this.hederaService.getCollectionsForAccount(hederaAccountId);
+    const collections = await Promise.all(collectionIds.map(id => this.getCollection(id)));
+    const nfts = await Promise.all(collectionIds.map(async (collectionId) => {
+        const nftsInCollection = await this.hederaService.getNFTsInCollection(collectionId);
+        return nftsInCollection.map(nft => new Asset(Object.assign(Object.assign({}, nft), { id: `${collectionId}:${nft.serialNumber}`, tokenId: collectionId })));
+    }));
+    return {
+        collections,
+        nfts: nfts.flat()
+    };
+}
+
+  async getAssetsInCollection(collectionId: string): Promise<any> {
+    try {
+      const nfts = await this.hederaService.getNFTsInCollection(collectionId);
+      return nfts;
+    } catch (error) {
+      console.error('Error fetching assets', error);
+      throw error;
+    }
+  }
+}
+
+```
+
+# backend/src/collections/collection.module.ts
+
+```ts
+import { Module } from '@nestjs/common';
+import { CollectionService } from './collection.service';
+import { CollectionController } from './collection.controller';
+import { HederaModule } from '../hedera/hedera.module';
+
+@Module({
+  imports: [HederaModule],
+  providers: [CollectionService],
+  controllers: [CollectionController],
+  exports: [CollectionService]
+})
+export class CollectionModule {}
+
+```
+
+# backend/src/collections/collection.controller.ts
+
+```ts
+import { Controller, Get, Post, Body, Param, Put, UseGuards } from '@nestjs/common';
+import { CollectionService } from './collection.service';
+import { Collection } from '../models/collection.model';
+import { Asset } from '../models/asset.model';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { ConfigService } from '@nestjs/config';
+
+@Controller('collections')
+@UseGuards(JwtAuthGuard)
+export class CollectionController {
+  constructor(
+    private readonly collectionService: CollectionService,
+    private configService: ConfigService
+  ) {}
+
+  @Post()
+  async createCollection(@Body() collectionData: { name: string; symbol: string; description: string }): Promise<Collection> {
+    return this.collectionService.createCollection(collectionData.name, collectionData.symbol, collectionData.description);
+  }
+
+  @Get()
+  async getAllCollections(): Promise<any> {
+    return this.collectionService.getCollectionsAndNFTs(this.configService.get('HEDERA_ACCOUNT_ID'));
+  }
+
+  @Get(':id')
+  async getCollection(@Param('id') id: string): Promise<Collection> {
+    return this.collectionService.getCollection(id);
+  }
+
+  @Get(':id/assets')
+  async getAssetsInCollection(@Param('id') collectionId: string): Promise<Asset[]> {
+    return this.collectionService.getAssetsInCollection(collectionId);
+  }
+}
+
+```
+
+# backend/src/models/create-asset.dto.ts
+
+```ts
+import { IsString, IsDate, IsNumber, IsBoolean, IsOptional, ValidateNested, IsArray } from 'class-validator';
+import { Type } from 'class-transformer';
+
+class SensorAttributeDto {
+  @IsString()
+  sensor_type_id: string;
+
+  @IsString()
+  name: string;
+
+  @IsString()
+  vendor_code: string;
+
+  @IsDate()
+  start_time: Date;
+
+  @IsBoolean()
+  has_temperature_monitor_1: boolean;
+
+  @IsNumber()
+  @IsOptional()
+  temperature_monitor_value_1?: number;
+
+  @IsNumber()
+  @IsOptional()
+  warning_temperature_monitor_1?: number;
+
+  @IsString()
+  @IsOptional()
+  temperature_monitor_name_1?: string;
+
+  @IsBoolean()
+  has_geofence: boolean;
+
+  @IsNumber()
+  @IsOptional()
+  geofence_distance?: number;
+}
+
+class MachineModuleAttributeDto {
+  @IsString()
+  serial_number: string;
+
+  @IsString()
+  manufacturer: string;
+
+  @IsString()
+  machine_module_model: string;
+
+  @IsString()
+  @IsOptional()
+  machine_module_type_id?: string;
+
+  @IsString()
+  module_type_machine: string;
+
+  @IsString()
+  @IsOptional()
+  obs?: string;
+}
+
+export class CreateAssetDto {
+  @IsString()
+  name: string;
+
+  @IsString()
+  machine_type: string;
+
+  @IsString()
+  serial_number: string;
+
+  @IsString()
+  manufacturer: string;
+
+  @IsString()
+  model: string;
+
+  @IsNumber()
+  manufacture_year: number;
+
+  @IsString()
+  customer_id: string;
+
+  @IsString()
+  site_id: string;
+
+  @IsString()
+  project_id: string;
+
+  @IsDate()
+  acquisition_date: Date;
+
+  @IsDate()
+  purchase_date: Date;
+
+  @IsDate()
+  installation_date: Date;
+
+  @IsNumber()
+  warranty_in_months: number;
+
+  @IsDate()
+  warranty_start_date: Date;
+
+  @IsString()
+  owner: string;
+
+  @IsString()
+  cost_center: string;
+
+  @IsString()
+  account: string;
+
+  @IsNumber()
+  price: number;
+
+  @IsString()
+  criticality: '1' | '2' | '3';
+
+  @IsDate()
+  initial_reading_date: Date;
+
+  @IsDate()
+  last_reading_date: Date;
+
+  @IsNumber()
+  load_working_time: number;
+
+  @IsNumber()
+  working_time: number;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SensorAttributeDto)
+  sensors_attributes: SensorAttributeDto[];
+
+  @IsBoolean()
+  has_virtual_sensor: boolean;
+
+  @IsString()
+  @IsOptional()
+  virtual_sensor_name?: string;
+
+  @IsNumber()
+  @IsOptional()
+  virtual_sensor_daily_hours?: number;
+
+  @IsNumber()
+  @IsOptional()
+  virtual_sensor_days_in_week?: number;
+
+  @IsString()
+  @IsOptional()
+  obs?: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MachineModuleAttributeDto)
+  machine_modules_attributes: MachineModuleAttributeDto[];
+
+  @IsString()
+  collectionId: string;
+}
+
+```
+
+# backend/src/models/collection.model.ts
+
+```ts
+export class Collection {
+  id: string;
+  name: string;
+  symbol: string;
+  description: string;
+  createdAt: Date;
+
+  constructor(partial: Partial<Collection>) {
+    Object.assign(this, partial);
+  }
+}
+
+```
+
+# backend/src/models/asset.model.ts
+
+```ts
+export class Asset {
+  name: string;
+  manufacturer: string;
+  model: string;
+  serialNumber: string;
+  manufactureDate: Date;
+
+  collectionId: string;
+  id: string;
+  topicId: string;
+
+  constructor(partial: Partial<Asset>) {
+    Object.assign(this, partial);
+  }
+}
+
+```
+
+# backend/src/assets/asset.service.ts
+
+```ts
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { HederaService } from '../hedera/hedera.service';
+import { Asset } from '../models/asset.model';
+import { CreateAssetDto } from '../models/create-asset.dto';
+
+class AssetCreationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AssetCreationError';
+  }
+}
+
+class AssetEventError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AssetEventError';
+  }
+}
+
+@Injectable()
+export class AssetService {
+  private assets: Asset[] = [];
+
+  constructor(private readonly hederaService: HederaService) {}
+
+  async createAsset(collectionId: string, createAsset: CreateAssetDto): Promise<Asset> {
+    try {
+      // Ensure createAssetDto is not undefined
+      if (!createAsset) {
+        throw new BadRequestException('Asset data is required');
+      }
+
+      console.log('Creating asset', createAsset);
+
+      // Create a topic for the asset
+      const topicId = await this.hederaService.createTopic(createAsset);
+      console.log('Topic ID:', topicId);
+
+      // Prepare initial metadata
+      const initialMetadata = {
+        asset: createAsset,
+        timestamp: new Date().toISOString(),
+        topicId: topicId
+      };
+
+      // Mint NFT
+      const serialNumber = await this.hederaService.mintNFT(collectionId, initialMetadata);
+
+      // Create asset object
+      const asset = new Asset({
+        ...createAsset,
+        id: `${collectionId}:${serialNumber}`,
+        collectionId: collectionId,
+        topicId: topicId,
+      });
+
+      return asset;
+    } catch (error) {
+      console.error('Error creating asset', error);
+      throw new AssetCreationError(`Failed to create asset: ${error.message}`);
+    }
+  }
+
+  async createAssetEvent(topicId: string, event: any): Promise<void> {
+    try {
+      await this.hederaService.submitMessage(topicId, JSON.stringify(event));
+    } catch (error) {
+      console.error('Error creating asset event', error);
+      throw new AssetEventError(`Failed to create asset event: ${error.message}`);
+    }
+  }
+
+  async getAssetEvents(assetId: string, startDate: Date): Promise<any> {
+    try {
+      const asset = this.assets.find((a) => a.id === assetId);
+      if (!asset) {
+        throw new NotFoundException(`Asset with ID ${assetId} not found`);
+      }
+
+      const { topicId } = asset;
+      const messages = await this.hederaService.getMessages(topicId, startDate, 10, 1000);
+      return messages;
+    } catch (error) {
+      console.error(`Error fetching events for asset ID ${assetId}`, error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(`Failed to fetch asset events: ${error.message}`);
+    }
+  }
+
+  async getCollectionInfo(collectionId: string): Promise<any> {
+    try {
+      return await this.hederaService.getCollectionInfo(collectionId);
+    } catch (error) {
+      console.error(`Error fetching collection info for ID ${collectionId}`, error);
+      throw new BadRequestException(`Failed to fetch collection info: ${error.message}`);
+    }
+  }
+
+  async getIliotAsset(assetId: string): Promise<any> {
+    try {
+      const [collectionId, serialNumber] = assetId.split(':');
+
+      if (!collectionId || !serialNumber) {
+        throw new BadRequestException('Invalid asset ID format');
+      }
+
+      const nftInfo = await this.hederaService.getNFTInfo(collectionId, serialNumber);
+
+      if (!nftInfo || !nftInfo.metadata) {
+        throw new NotFoundException(`Asset with ID ${assetId} not found`);
+      }
+
+      const fileId = Buffer.from(nftInfo.metadata).toString('utf8');
+
+      if (!fileId) {
+        throw new BadRequestException('Asset metadata file ID is invalid or missing');
+      }
+
+      const fileContents = await this.hederaService.getFileContents(fileId);
+
+      if (!fileContents || !fileContents.asset) {
+        throw new BadRequestException('Asset data is invalid or missing');
+      }
+
+      return fileContents.asset;
+    } catch (error) {
+      console.error(`Error fetching Iliot asset with ID ${assetId}`, error);
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(`Failed to fetch Iliot asset: ${error.message}`);
+    }
+  }
+
+  async getTopicId(assetId: string): Promise<string> {
+    try {
+      const [collectionId, serialNumber] = assetId.split(':');
+
+        if (!collectionId || !serialNumber) {
+          throw new BadRequestException('Invalid asset ID format');
+        }
+
+        const nftInfo = await this.hederaService.getNFTInfo(collectionId, serialNumber);
+
+        if (!nftInfo || !nftInfo.metadata) {
+          throw new NotFoundException(`Asset with ID ${assetId} not found`);
+        }
+
+        const fileId = Buffer.from(nftInfo.metadata).toString('utf8');
+
+        if (!fileId) {
+          throw new BadRequestException('Asset metadata file ID is invalid or missing');
+        }
+
+        const fileContents = await this.hederaService.getFileContents(fileId);
+
+        if (!fileContents || !fileContents.topicId) {
+          throw new BadRequestException('Asset topic ID is invalid or missing');
+        }
+
+        return fileContents.topicId;
+      } catch (error) {
+        console.error(`Error fetching topic ID for asset with ID ${assetId}`, error);
+        if (error instanceof BadRequestException || error instanceof NotFoundException) {
+          throw error;
+        }
+        throw new BadRequestException(`Failed to fetch topic ID: ${error.message}`);
+      }
+    }
+}
+
+```
+
+# backend/src/assets/asset.module.ts
+
+```ts
+import { Module } from '@nestjs/common';
+import { AssetService } from './asset.service';
+import { AssetController } from './asset.controller';
+import { HederaModule } from '../hedera/hedera.module';
+
+@Module({
+  imports: [HederaModule],
+  providers: [AssetService],
+  controllers: [AssetController],
+  exports: [AssetService]
+})
+export class AssetsModule {}
+
+```
+
+# backend/src/assets/asset.controller.ts
+
+```ts
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Query } from '@nestjs/common';
+import { AssetService } from './asset.service';
+import { CreateAssetDto } from '../models/create-asset.dto';
+import { HederaService } from '../hedera/hedera.service';
+
+@Controller('assets')
+export class AssetController {
+  constructor(
+    private readonly assetService: AssetService,
+    private readonly hederaService: HederaService
+  ) {}
+
+  @Post()
+  async createAsset(@Body() createAsset: {collectionId: string, assetData: CreateAssetDto}) {
+    return this.assetService.createAsset(createAsset.collectionId, createAsset.assetData);
+  }
+
+  @Post(':id/events')
+  async createAssetEvent(@Param('id') id: string, @Body() event: any) {
+    return this.assetService.createAssetEvent(id, event);
+  }
+
+  @Get(':id/events')
+  async getAssetEvents(@Param('id') id: string, @Query('startTime') startTime: string) {
+    const startDate = startTime ? new Date(startTime) : new Date(0);
+    return this.assetService.getAssetEvents(id, startDate);
+  }
+
+  @Get(':id/details')
+  async getAssetDetails(@Param('id') id: string) {
+    return this.hederaService.getFileContents(id);
+  }
+
+  // get nft collectionId:serialNumber and return file metadata.asset
+  @Get(':id')
+  async getIliotAsset(@Param('id') assetId: string) {
+    return this.assetService.getIliotAsset(assetId);
+  }
+
+  @Get(':id/topicId')
+  async getTopicId(@Param('id') assetId: string) {
+    return this.assetService.getTopicId(assetId);
   }
 }
 
@@ -3558,14 +4543,20 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { AuthController } from './auth.controller';
 import { LocalStrategy } from './local.strategy';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
-    JwtModule.register({
-      secret: '018515',
-      signOptions: { expiresIn: '60m' },
+    ConfigModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: '60m' },
+      }),
+      inject: [ConfigService],
     }),
   ],
   providers: [AuthService, JwtStrategy, LocalStrategy],
@@ -3604,306 +4595,114 @@ export class AuthController {
 
 ```
 
-# backend/src/assets/asset.service.ts
+# src/app/shared/modules/iliot-asset.module.ts
 
 ```ts
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { HederaService } from '../hedera/hedera.service';
-import { Asset } from '../models/asset.model';
-import { CreateAssetDto } from '../models/create-asset.dto';
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { IliotAsset } from '../models/iliot-asset.interface';
 
-@Injectable()
-export class AssetService {
-  private assets: Asset[] = [];
+export { IliotAsset } from '../models/iliot-asset.interface';
 
-  constructor(private readonly hederaService: HederaService) {}
-
-  async createAsset(createAssetDto: CreateAssetDto): Promise<Asset> {
-    try {
-
-      const topicId = await this.hederaService.createTopic(createAssetDto);
-      console.log('Topic ID:', topicId);
-
-      const initialMetadata = {
-        data: createAssetDto,
-        timestamp: new Date().toISOString(),
-        topicId: topicId
-      };
-
-      const serialNumber = await this.hederaService.mintNFT(createAssetDto.collectionId, initialMetadata);
-
-      const asset = new Asset({
-        ...createAssetDto,
-        id: `${createAssetDto.collectionId}:${serialNumber}`,
-        collectionId: createAssetDto.collectionId,
-        topicId: topicId,
-      });
-
-      this.assets.push(asset);
-
-      // Registrar evento de criação no HCS
-      const createEvent = {
-        type: 'ASSET_CREATED',
-        assetId: asset.id,
-        timestamp: new Date().toISOString(),
-        details: { ...createAssetDto }
-      };
-
-      await this.hederaService.submitMessage(topicId, JSON.stringify(createEvent));
-
-      return asset;
-    } catch (error) {
-      console.error('Error creating asset', error);
-      throw error;
-    }
-  }
-
-  async createAssetEvent(topicId: string, event: any): Promise<void> {
-    try {
-      await this.hederaService.submitMessage(topicId, JSON.stringify(event));
-    } catch (error) {
-      console.error('Error creating asset event', error);
-      throw error;
-    }
-  }
-
-  async getAssetEvents(assetId: string, startDate: Date): Promise<any> {
-    // hedera service to get messages
-    try {
-      const asset = this.assets.find((a) => a.id === assetId);
-      if (!asset) {
-        throw new NotFoundException(`Asset with ID ${assetId} not found`);
-      }
-
-      const { topicId } = asset;
-      const messages = await this.hederaService.getMessages(topicId, startDate, 10, 1000);
-      return messages;
-    } catch (error) {
-      console.error(`Error fetching events for asset ID ${assetId}`, error);
-      throw error;
-    }
-  }
-
-  async getNFTInfo(tokenId: string): Promise<any> {
-    return this.hederaService.getNFTInfo(tokenId);
-  }
-}
-
-```
-
-# backend/src/assets/asset.module.ts
-
-```ts
-import { Module } from '@nestjs/common';
-
-@Module({})
-export class AssetsModule {}
-
-```
-
-# backend/src/assets/asset.controller.ts
-
-```ts
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Query } from '@nestjs/common';
-import { AssetService } from './asset.service';
-import { CreateAssetDto } from '../models/create-asset.dto';
-import { HederaService } from '../hedera/hedera.service';
-
-@Controller('assets')
-export class AssetController {
-  constructor(
-    private readonly assetService: AssetService,
-    private readonly hederaService: HederaService
-  ) {}
-
-  @Post()
-  async createAsset(@Body() createAssetDto: CreateAssetDto) {
-    return this.assetService.createAsset(createAssetDto);
-  }
-
-  @Post(':id/events')
-  async createAssetEvent(@Param('id') id: string, @Body() event: any) {
-    return this.assetService.createAssetEvent(id, event);
-  }
-
-  @Get(':id/events')
-  async getAssetEvents(@Param('id') id: string, @Query('startTime') startTime: string) {
-    const startDate = startTime ? new Date(startTime) : new Date(0);
-    return this.assetService.getAssetEvents(id, startDate);
-  }
-
-  @Get(':id/details')
-  async getAssetDetails(@Param('id') id: string) {
-    return this.hederaService.getFileContents(id);
-  }
-}
-
-```
-
-# backend/src/users/users.service.ts
-
-```ts
-import { Injectable } from '@nestjs/common';
-
-@Injectable()
-export class UsersService {
-  private readonly users = [
-    {
-      hederaAccountId: '0.0.534863',
-      username: 'leco',
-      password: '$2b$10$4zpsMBKFFkcj8OY4CJmuruf8Vedv4CS7pI5Q6/lfdggT5niK/x3KW',
-    },
-  ];
-
-  async findOne(username: string): Promise<any | undefined> {
-    return this.users.find(user => user.username === username);
-  }
-
-}
-
-```
-
-# backend/src/users/users.module.ts
-
-```ts
-import { Module } from '@nestjs/common';
-import { UsersService } from './users.service';
-
-@Module({
-  providers: [UsersService],
-  exports: [UsersService],
+@NgModule({
+  imports: [CommonModule],
+  declarations: [],
+  exports: []
 })
-export class UsersModule {}
+export class IliotAssetModule {}
 
-```
-
-# backend/src/users/user.model.ts
-
-```ts
-export class User {
-  hederaAccountId: string;
-  username: string;
-  password: string;
-}
-
-```
-
-# backend/src/collections/collection.service.ts
-
-```ts
-import { Injectable } from '@nestjs/common';
-import { HederaService } from '../hedera/hedera.service';
-import { Collection } from '../models/collection.model';
-import { Asset } from '../models/asset.model';
-
-@Injectable()
-export class CollectionService {
-  constructor(private readonly hederaService: HederaService) {}
-
-  async createCollection(name: string, symbol: string, description: string): Promise<Collection> {
-    const tokenId = await this.hederaService.createNFTCollection(name, symbol);
-    return new Collection({
-      id: tokenId,
-      name,
-      symbol,
-      description,
-      createdAt: new Date()
-    });
-  }
-
-  async getCollection(collectionId: string): Promise<Collection> {
-    const info = await this.hederaService.getNFTInfo(collectionId);
-    return new Collection({
-      id: collectionId,
-      name: info.name,
-      symbol: info.symbol,
-      description: 'Description not available', // Hedera não fornece descrição no TokenInfo
-      createdAt: new Date() // Hedera não fornece a data de criação, então usamos a data atual
-    });
-  }
-
-  async getCollectionsAndNFTs(hederaAccountId) {
-    console.log('hederaAccountId', hederaAccountId);
-    const collectionIds = await this.hederaService.getCollectionsForAccount(hederaAccountId);
-    const collections = await Promise.all(collectionIds.map(id => this.getCollection(id)));
-    const nfts = await Promise.all(collectionIds.map(async (collectionId) => {
-        const nftsInCollection = await this.hederaService.getNFTsInCollection(collectionId);
-        return nftsInCollection.map(nft => new Asset(Object.assign(Object.assign({}, nft), { id: `${collectionId}:${nft.serialNumber}`, tokenId: collectionId })));
-    }));
-    return {
-        collections,
-        nfts: nfts.flat()
-    };
-}
-
-  async getAssetsInCollection(collectionId: string): Promise<any> {
-    try {
-      const nfts = await this.hederaService.getNFTsInCollection(collectionId);
-      return nfts;
-    } catch (error) {
-      console.error('Error fetching assets', error);
-      throw error;
+// You can add utility functions here if needed
+export function createEmptyIliotAsset(): IliotAsset {
+  return {
+    machine: {
+      name: '',
+      machine_type: '',
+      serial_number: '',
+      manufacturer: '',
+      model: '',
+      manufacture_year: new Date().getFullYear(),
+      customer_id: '',
+      site_id: '',
+      project_id: '',
+      acquisition_date: '',
+      purchase_date: '',
+      installation_date: '',
+      warranty_in_months: 0,
+      warranty_start_date: '',
+      owner: '',
+      cost_center: '',
+      account: '',
+      price: 0,
+      criticality: '1',
+      initial_reading_date: '',
+      last_reading_date: '',
+      load_working_time: 0,
+      working_time: 0,
+      sensors_attributes: [],
+      has_virtual_sensor: false,
+      machine_modules_attributes: []
     }
-  }
+  };
 }
 
 ```
 
-# backend/src/collections/collection.module.ts
+# src/app/shared/models/iliot-asset.interface.ts
 
 ```ts
-import { Module } from '@nestjs/common';
-import { CollectionService } from './collection.service';
-import { CollectionController } from './collection.controller';
-import { HederaModule } from '../hedera/hedera.module';
-
-@Module({
-  imports: [HederaModule],
-  providers: [CollectionService],
-  controllers: [CollectionController],
-  exports: [CollectionService]
-})
-export class CollectionModule {}
-
-```
-
-# backend/src/collections/collection.controller.ts
-
-```ts
-import { Controller, Get, Post, Body, Param, Put, UseGuards } from '@nestjs/common';
-import { CollectionService } from './collection.service';
-import { Collection } from '../models/collection.model';
-import { Asset } from '../models/asset.model';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { ConfigService } from '@nestjs/config';
-
-@Controller('collections')
-@UseGuards(JwtAuthGuard)
-export class CollectionController {
-  constructor(
-    private readonly collectionService: CollectionService,
-    private configService: ConfigService
-  ) {}
-
-  @Post()
-  async createCollection(@Body() collectionData: { name: string; symbol: string; description: string }): Promise<Collection> {
-    return this.collectionService.createCollection(collectionData.name, collectionData.symbol, collectionData.description);
-  }
-
-  @Get()
-  async getAllCollections(): Promise<any> {
-    return this.collectionService.getCollectionsAndNFTs(this.configService.get('HEDERA_ACCOUNT_ID'));
-  }
-
-  @Get(':id')
-  async getCollection(@Param('id') id: string): Promise<Collection> {
-    return this.collectionService.getCollection(id);
-  }
-
-  @Get(':id/assets')
-  async getAssetsInCollection(@Param('id') collectionId: string): Promise<Asset[]> {
-    return this.collectionService.getAssetsInCollection(collectionId);
-  }
+export interface IliotAsset {
+  id?: string; // Optional, as it's only needed for updates
+  machine: {
+    id?: string; // ##PK##
+    name: string; // ID (TAG)
+    machine_type: string; // Tipo
+    serial_number: string; // Número de serie
+    manufacturer: string; // Fabricante
+    model: string; // Modelo
+    manufacture_year: number; // Ano de fabricação
+    customer_id: string; // Cliente
+    site_id: string; // Localidade
+    project_id: string; // Projeto/Contrato
+    acquisition_date: string; // Data da aquisição
+    purchase_date: string; // Data da venda
+    installation_date: string; // Data de instalação
+    warranty_in_months: number; // Tempo de garantia, em meses
+    warranty_start_date: string; // Data de início da garantia
+    owner: string; // Proprietário
+    cost_center: string; // Centro de custo
+    account: string; // Conta contábil
+    price: number; // Preço
+    criticality: '1' | '2' | '3'; // Valores de 1 a 3, do menos crítico ao mais crítico
+    initial_reading_date: string; // Data da leitura inicial
+    last_reading_date: string; // Data da aferição
+    load_working_time: number; // Última leitura do horímetro carga
+    working_time: number; // Última leitura do horímetro
+    sensors_attributes: Array<{
+      sensor_type_id: string; // Id
+      name: string; // Nome
+      vendor_code: string; // Código Sensor
+      start_time: string; // Data instalação sensor
+      has_temperature_monitor_1: boolean; // Cadastro alertas temperatura
+      temperature_monitor_value_1?: number; // Valor crítico de temperatura
+      warning_temperature_monitor_1?: number; // Valor alerta de temperatura
+      temperature_monitor_name_1?: string; // Nome do alerta
+      has_geofence: boolean; // Cadastro alertas cerca virtual
+      geofence_distance?: number; // Raio do local demarcado (km)
+    }>;
+    has_virtual_sensor: boolean; // Possui horímetro virtual?
+    virtual_sensor_name?: string; // Nome/descrição
+    virtual_sensor_daily_hours?: number; // Tempo de funcionamento estimado diário (horas)
+    virtual_sensor_days_in_week?: number; // Nº de dias trabalhados na semana
+    obs?: string; // Observação
+    machine_modules_attributes: Array<{
+      serial_number: string; // Número de Série
+      manufacturer: string; // Fabricante
+      machine_module_model: string; // Modelo
+      machine_module_type_id?: string; // (Opcional) Tipo
+      module_type_machine: string; // Tipo
+      obs?: string; // Observação
+    }>;
+  };
 }
 
 ```

@@ -1,0 +1,42 @@
+div.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  img {
+    width: 60px;
+    height: 60px;
+  }
+
+  h1 {
+    font-size: 48px;
+    font-weight: 700;
+    margin-left: 10px;
+  }
+}
+
+div.login-card {
+  padding: 16px;
+  margin: 16px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background: var(--ion-color-dark);
+
+  ion-item {
+    --background: var(--ion-color-dark-shade);
+    border-radius: 8px;
+    margin: 8px 0;
+  }
+}
+
+div.pre-save-logins {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
