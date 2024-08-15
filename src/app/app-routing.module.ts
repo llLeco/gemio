@@ -35,6 +35,10 @@ const routes: Routes = [
     path: 'collection-form',
     loadChildren: () => import('./collection-form/collection-form.module').then( m => m.CollectionFormPageModule)
   },
+  {
+    path: 'permissions',
+    loadChildren: () => import('./permissions/permissions.module').then( m => m.PermissionsPageModule)
+  },
 ];
 
 @NgModule({

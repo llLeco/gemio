@@ -1,0 +1,39 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title class="ion-text-center">Permissions</ion-title>
+    <ion-back-button slot="start" defaultHref="/dashboard"></ion-back-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <div class="header">
+    <img src="assets/icon/gemio.png" alt="Gemio" />
+    <h1>Gemio</h1>
+  </div>
+
+  <hr>
+
+  <div class="info">
+    <h1> Manage Permissions</h1>
+    <p> Grant or revoke permissions for other users. </p>
+  </div>
+
+  <div class="actions">
+    <ion-button expand="block" color="primary" shape="round"> <ion-icon name="add-outline"></ion-icon> Grant Permission </ion-button>
+  </div>
+
+  <hr>
+
+  <ion-searchbar placeholder="Search Users" mode="ios" color="dark"></ion-searchbar>
+
+  <div class="active-permissions">
+    <ion-item slot="header" lines="none" *ngFor="let permission of permissions" detail="true" (click)="openUserPermissions(permission)">
+      <ion-label>
+        <h2>{{ permission.username }} ({{permission.id}})</h2>
+        <p>{{ permission.role }} - {{ permission.expiration }}</p>
+      </ion-label>
+      <ion-chip [color]="permission.color"> {{permission.status}} </ion-chip>
+    </ion-item>
+  </div>
+
+</ion-content>
