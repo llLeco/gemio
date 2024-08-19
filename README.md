@@ -31,12 +31,10 @@ Gemio addresses critical challenges in information sharing and traceability for 
 ### Frontend
 - Angular 18
 - Ionic Framework
-- RxJS
 
 ### Backend
 - NestJS
 - Hedera JavaScript SDK
-- Passport.js for authentication
 
 ### Database
 - Hedera Hashgraph (for blockchain storage)
