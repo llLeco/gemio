@@ -16,7 +16,7 @@
   "start:dev": "concurrently \"npm run start:backend\" \"npm run start:frontend --port 80\"",
 
   "start:prod": "cd backend && npm run start:prod",
-  "start:full": "concurrently \"npm run start:prod\" \"npm run start:frontend --port 80\"",
+  "start:full": "concurrently \"npm run start:prod\" \"npm run start:frontend\"",
 
   "build:full": "npm run build:frontend && npm run build:backend",
   "build:frontend": "ng build --configuration production",
