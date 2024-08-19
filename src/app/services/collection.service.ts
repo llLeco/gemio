@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import axios from 'axios';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CollectionService {
-  private apiUrl = 'http://localhost:3000/collections';
+  private apiUrl = `${environment.apiUrl}/collections`;
 
   constructor() { }
 
