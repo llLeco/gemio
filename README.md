@@ -110,15 +110,9 @@ backend/
 
 ## Running the Application
 
-1. Start the backend server:
+1. Start the frontend and the backend server:
    ```
-   cd backend
    npm run start:dev
-   ```
-
-2. In a new terminal, start the frontend application:
-   ```
-   ionic serve
    ```
 
 3. Access the application at `http://localhost:8100`
