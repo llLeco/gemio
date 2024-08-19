@@ -6,5 +6,12 @@ import { Component } from '@angular/core';
   styleUrls: ['app.component.scss'],
 })
 export class AppComponent {
-  constructor() {}
+  prefersDark: any = window.matchMedia('(prefers-color-scheme: dark)');
+
+  constructor() {
+    if (this.prefersDark.matches) {
+      document.body.classList.toggle('dark', true);
+    }
+  }
+
 }
