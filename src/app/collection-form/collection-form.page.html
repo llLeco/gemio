@@ -10,21 +10,27 @@
 <ion-content class="ion-padding">
   <form [formGroup]="collectionForm" (ngSubmit)="onSubmit()">
 
-    <ion-item>
-      <ion-label position="floating">Name</ion-label>
-      <ion-input formControlName="name" type="text"></ion-input>
-    </ion-item>
+    <div class="collection-form-card">
+      <h5 class="ion-text-center"> New Collection </h5>
+      <hr>
 
-    <ion-item>
-      <ion-label position="floating">Symbol</ion-label>
-      <ion-input formControlName="symbol" type="text"></ion-input>
-    </ion-item>
+      <ion-item>
+        <ion-label position="floating">Name</ion-label>
+        <ion-input formControlName="name" type="text"></ion-input>
+      </ion-item>
 
-    <ion-item>
-      <ion-label position="floating">Description</ion-label>
-      <ion-input formControlName="description" type="text"></ion-input>
-    </ion-item>
+      <ion-item>
+        <ion-label position="floating">Symbol</ion-label>
+        <ion-input formControlName="symbol" type="text"></ion-input>
+      </ion-item>
 
-    <ion-button expand="block" type="submit" [disabled]="!collectionForm.valid"> Create Collection </ion-button>
+      <ion-item>
+        <ion-label position="floating">Description</ion-label>
+        <ion-textarea formControlName="description" type="text"></ion-textarea>
+      </ion-item>
+
+      <ion-button expand="block" shape="round" type="submit" [disabled]="!collectionForm.valid"> Create Collection </ion-button>
+    </div>
+
   </form>
 </ion-content>

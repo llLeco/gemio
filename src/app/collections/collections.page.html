@@ -1,0 +1,39 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title class="ion-text-center">Collections</ion-title>
+    <ion-back-button slot="start" defaultHref="/dashboard"></ion-back-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <div class="header">
+    <img src="assets/icon/gemio.png" alt="Gemio" />
+    <h1>Gemio</h1>
+  </div>
+
+  <hr>
+
+  <div class="info">
+    <h1> See Collections</h1>
+    <p> Here you can see all the collections you have created or have been shared with you. </p>
+  </div>
+
+  <div class="actions">
+    <ion-button expand="block" color="primary" shape="round" routerLink="/collection-form"> <ion-icon name="add-outline"></ion-icon> &nbsp; Create Collection </ion-button>
+  </div>
+
+  <ion-searchbar placeholder="Search Collections" mode="ios" color="dark"></ion-searchbar>
+
+  <div class="collections-card">
+    <ion-list>
+      <ion-item *ngFor="let collection of collections; let i = index" [routerLink]="'/asset/' + collection.id" class="collection-item" [attr.data-index]="i">
+        <ion-label>
+          <h2>{{ collection.name }}</h2>
+          <p>{{ collection.symbol }}</p>
+        </ion-label>
+        <ion-note slot="end">{{ collection.id }}</ion-note>
+      </ion-item>
+    </ion-list>
+  </div>
+
+</ion-content>

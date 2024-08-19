@@ -26,6 +26,9 @@ export declare class HederaService implements OnModuleInit, OnModuleDestroy {
     getNFTInfo(tokenId: string, serialNumber: string): Promise<any>;
     createTopic(assetData: any): Promise<string>;
     submitMessage(topicId: string, message: string): Promise<string>;
-    getMessages(topicId: any, startTime: any, messageCount: any, timeout: any): Promise<unknown>;
+    getMessages(topicId: string, startTime: Date, messageCount: number, timeout: number): Promise<Array<{
+        message: string;
+        timestamp: Date;
+    }>>;
     private executeWithRetry;
 }

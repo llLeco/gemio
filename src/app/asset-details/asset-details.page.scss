@@ -1,5 +1,5 @@
 .asset-card {
-  margin-bottom: 20px;
+  margin-bottom: 8px;
 }
 ion-card-title {
   font-size: 1.2em;
@@ -14,4 +14,90 @@ ion-label {
 }
 ion-textarea {
   margin-top: 10px;
+}
+
+div.info {
+  margin: 8px 0px;
+  text-align: center;
+
+  h1 {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  p {
+    font-size: 12px;
+    font-weight: 400;
+  }
+}
+
+div.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  img {
+    width: 40px;
+    height: 40px;
+  }
+
+  h1 {
+    font-size: 36px;
+    font-weight: 700;
+    margin-left: 8px;
+  }
+}
+
+div.collection-empty {
+  background: var(--ion-color-dark-shade);
+  padding: 16px 8px;
+  border-radius: 8px;
+  margin: 8px 0px;
+}
+
+div.nft-image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 8px 0px;
+
+  img {
+    width: 100%;
+    max-width: 300px;
+    border-radius: 8px;
+  }
+}
+
+div.asset-info,
+div.events,
+div.metadata,
+div.send-event {
+  padding: 8px;
+  background: var(--ion-color-dark-shade);
+  border-radius: 8px;
+  margin-bottom: 8px;
+
+  h4 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  ion-item {
+    margin: 8px 0px;
+    border-radius: 8px;
+    --inner-padding-end: 10px;
+    --inner-padding-start: 10px;
+  }
+}
+
+.event-item {
+  border-radius: 8px;
+  margin: 8px 0px;
+}
+
+ion-item[slot='header'] {
+  --padding-start: 10px;
+  --inner-padding-end: 10px;
+  border-radius: 8px;
+  margin: 8px 0px;
 }

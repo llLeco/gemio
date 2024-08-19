@@ -1,0 +1,13 @@
+div.collection-form-card {
+  padding: 16px;
+  margin: 16px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background: var(--ion-color-dark);
+
+  ion-item {
+    --background: var(--ion-color-dark-shade);
+    border-radius: 8px;
+    margin: 8px 0;
+  }
+}

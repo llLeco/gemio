@@ -25,7 +25,7 @@ export class DashboardPage implements OnInit {
 
   ngOnInit() {
     this.loadUserInfo();
-    this.loadCollections();
+    // this.loadCollections();
   }
 
   async loadUserInfo() {
@@ -35,17 +35,17 @@ export class DashboardPage implements OnInit {
     this.hederaAccountId = userInfo.hederaAccountId;
   }
 
-  async loadCollections() {
-    try {
-      await this.errorHandler.showLoading('Loading collections...');
-      this.collections = await this.collectionService.getCollections();
-      console.log('Collections', this.collections);
-      await this.errorHandler.hideLoading();
-    } catch (error) {
-      await this.errorHandler.hideLoading();
-      this.errorHandler.handleError(error);
-    }
-  }
+  // async loadCollections() {
+  //   try {
+  //     await this.errorHandler.showLoading('Loading collections...');
+  //     this.collections = await this.collectionService.getCollections();
+  //     console.log('Collections', this.collections);
+  //     await this.errorHandler.hideLoading();
+  //   } catch (error) {
+  //     await this.errorHandler.hideLoading();
+  //     this.errorHandler.handleError(error);
+  //   }
+  // }
 
   async doRefresh(event: any) {
     try {

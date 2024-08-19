@@ -39,6 +39,10 @@ const routes: Routes = [
     path: 'permissions',
     loadChildren: () => import('./permissions/permissions.module').then( m => m.PermissionsPageModule)
   },
+  {
+    path: 'collections',
+    loadChildren: () => import('./collections/collections.module').then( m => m.CollectionsPageModule)
+  },
 ];
 
 @NgModule({

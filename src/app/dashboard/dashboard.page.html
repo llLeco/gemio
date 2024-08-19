@@ -22,7 +22,7 @@
 
   <div class="action">
 
-    <div class="card">
+    <div class="card" [routerLink]="'/collections'">
       <ion-icon class="collection-icon" name="albums-outline"></ion-icon>
       <div class="text">
         <h1>See Collections</h1>
@@ -47,24 +47,4 @@
     </div>
 
   </div>
-
-  <ion-card class="collections-card">
-    <ion-card-header>
-      <ion-card-title>Your Collections</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <ion-list>
-        <ion-item *ngFor="let collection of collections; let i = index" [routerLink]="'/asset/' + collection.id" class="collection-item" [attr.data-index]="i">
-          <ion-label>
-            <h2>{{ collection.name }}</h2>
-            <p>{{ collection.symbol }}</p>
-          </ion-label>
-          <ion-note slot="end">{{ collection.id }}</ion-note>
-        </ion-item>
-      </ion-list>
-      <ion-button expand="block" routerLink="/collection-form" class="create-collection-btn">
-        Create New Collection
-      </ion-button>
-    </ion-card-content>
-  </ion-card>
 </ion-content>

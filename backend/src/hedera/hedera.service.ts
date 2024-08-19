@@ -214,11 +214,17 @@ export class HederaService implements OnModuleInit, OnModuleDestroy {
 
   async mintNFT(collectionId: string, metadata: any): Promise<string> {
     try {
-      console.log('Minting NFT with metadata:', metadata, 'for collection:', collectionId);
+      const imageUrl = 'assets/icon/gemio_nft.jpeg';
+        const enhancedMetadata = {
+          ...metadata,
+          image: imageUrl
+        };
+
+      console.log('Minting NFT with metadata:', enhancedMetadata, 'for collection:', collectionId);
       const supplyKey = PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY'));
 
       // Cria um arquivo imutável com os metadados
-      const fileId = await this.createImmutableFile(metadata);
+      const fileId = await this.createImmutableFile(enhancedMetadata);
 
       const mintTx = await new TokenMintTransaction()
         .setTokenId(collectionId)
@@ -331,32 +337,45 @@ export class HederaService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async getMessages(topicId, startTime, messageCount, timeout) {
-    return new Promise((resolve, reject) => {
-      let messages = [];
-
+  async getMessages(topicId: string, startTime: Date, messageCount: number, timeout: number): Promise<Array<{ message: string, timestamp: Date }>> {
+    return new Promise<Array<{ message: string, timestamp: Date }>>((resolve, reject) => {
+      const messages: Array<{ message: string, timestamp: Date }> = [];
       const topicIdObj = TopicId.fromString(topicId);
-      console.log(`Fetching past messages for topic ${topicId}`);
+      console.log(`Fetching messages for topic ${topicId}`);
 
       const subscription = new TopicMessageQuery()
         .setTopicId(topicIdObj)
         .setStartTime(startTime)
-        .subscribe(this.client,
+        .subscribe(
+          this.client,
           (error) => {
-            console.error(error);
-            subscription.unsubscribe();
-            reject(error);
+            if (error) {
+              console.error(`Subscription error: ${error}`);
+              subscription.unsubscribe();
+              // Não rejeitamos a promessa aqui, apenas logamos o erro
+            }
           },
           (message) => {
-            const buffer = Buffer.from(message.contents).toString("utf8");
-            messages.push(JSON.parse(buffer).message);
-            if (messages.length >= messageCount) {
-              subscription.unsubscribe();
-              resolve(messages);
+            try {
+              const buffer = Buffer.from(message.contents).toString("utf8");
+              const parsedMessage = JSON.parse(buffer);
+              messages.push({
+                message: parsedMessage.message,
+                timestamp: message.consensusTimestamp.toDate()
+              });
+              if (messages.length >= messageCount) {
+                subscription.unsubscribe();
+                resolve(messages);
+              }
+            } catch (parseError) {
+              console.error(`Error parsing message: ${parseError}`);
             }
-          });
+          }
+        );
+
       setTimeout(() => {
         subscription.unsubscribe();
+        // Resolvemos com as mensagens que temos, mesmo se não atingirmos messageCount
         resolve(messages);
       }, timeout);
     });

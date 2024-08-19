@@ -27,6 +27,16 @@ export class CollectionService {
     }
   }
 
+  async getCollection(collectionId: string): Promise<any> {
+    try {
+      const response = await axios.get(`${this.apiUrl}/${collectionId}`, { headers: this.getHeaders() });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching collection', error);
+      throw error;
+    }
+  }
+
   async getCollectionAssets(collectionId: string): Promise<any[]> {
     try {
       const response = await axios.get(`${this.apiUrl}/${collectionId}/assets`, { headers: this.getHeaders() });

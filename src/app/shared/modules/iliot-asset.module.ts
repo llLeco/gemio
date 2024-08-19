@@ -23,7 +23,7 @@ export function createEmptyIliotAsset(): IliotAsset {
       manufacture_year: new Date().getFullYear(),
       customer_id: '',
       site_id: '',
-      project_id: '',
+      // project_id: '',
       acquisition_date: '',
       purchase_date: '',
       installation_date: '',
@@ -33,14 +33,13 @@ export function createEmptyIliotAsset(): IliotAsset {
       cost_center: '',
       account: '',
       price: 0,
-      criticality: '1',
+      // criticality: '1',
       initial_reading_date: '',
       last_reading_date: '',
       load_working_time: 0,
       working_time: 0,
-      sensors_attributes: [],
       has_virtual_sensor: false,
-      machine_modules_attributes: []
+      // machine_modules_attributes: []
     }
   };
 }

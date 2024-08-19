@@ -165,9 +165,11 @@ let HederaService = HederaService_1 = class HederaService {
     }
     async mintNFT(collectionId, metadata) {
         try {
-            console.log('Minting NFT with metadata:', metadata, 'for collection:', collectionId);
+            const imageUrl = 'assets/icon/gemio_nft.jpeg';
+            const enhancedMetadata = Object.assign(Object.assign({}, metadata), { image: imageUrl });
+            console.log('Minting NFT with metadata:', enhancedMetadata, 'for collection:', collectionId);
             const supplyKey = sdk_1.PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY'));
-            const fileId = await this.createImmutableFile(metadata);
+            const fileId = await this.createImmutableFile(enhancedMetadata);
             const mintTx = await new sdk_1.TokenMintTransaction()
                 .setTokenId(collectionId)
                 .setMetadata([Buffer.from(fileId.toString())])
@@ -266,22 +268,32 @@ let HederaService = HederaService_1 = class HederaService {
     }
     async getMessages(topicId, startTime, messageCount, timeout) {
         return new Promise((resolve, reject) => {
-            let messages = [];
+            const messages = [];
             const topicIdObj = sdk_1.TopicId.fromString(topicId);
-            console.log(`Fetching past messages for topic ${topicId}`);
+            console.log(`Fetching messages for topic ${topicId}`);
             const subscription = new sdk_1.TopicMessageQuery()
                 .setTopicId(topicIdObj)
                 .setStartTime(startTime)
                 .subscribe(this.client, (error) => {
-                console.error(error);
-                subscription.unsubscribe();
-                reject(error);
-            }, (message) => {
-                const buffer = Buffer.from(message.contents).toString("utf8");
-                messages.push(JSON.parse(buffer).message);
-                if (messages.length >= messageCount) {
+                if (error) {
+                    console.error(`Subscription error: ${error}`);
                     subscription.unsubscribe();
-                    resolve(messages);
+                }
+            }, (message) => {
+                try {
+                    const buffer = Buffer.from(message.contents).toString("utf8");
+                    const parsedMessage = JSON.parse(buffer);
+                    messages.push({
+                        message: parsedMessage.message,
+                        timestamp: message.consensusTimestamp.toDate()
+                    });
+                    if (messages.length >= messageCount) {
+                        subscription.unsubscribe();
+                        resolve(messages);
+                    }
+                }
+                catch (parseError) {
+                    console.error(`Error parsing message: ${parseError}`);
                 }
             });
             setTimeout(() => {

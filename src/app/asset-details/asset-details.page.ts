@@ -5,6 +5,7 @@ import { LoadingController } from '@ionic/angular';
 import { CollectionService } from '../services/collection.service';
 import { HederaService } from '../services/hedera.service';
 import { firstValueFrom, Subscription } from 'rxjs';
+import { ErrorHandlerService } from '../services/error-handler.service';
 
 @Component({
   selector: 'app-asset-details',
@@ -17,18 +18,21 @@ export class AssetDetailsPage implements OnInit, OnDestroy {
   error: string | null = null;
   public newEvent: string = '';
   private messageSubscription: Subscription = new Subscription();
+  public collection: any;
 
   constructor(
     private route: ActivatedRoute,
     private assetService: AssetService,
     private loadingController: LoadingController,
     private collectionService: CollectionService,
-    private hederaService: HederaService
+    private hederaService: HederaService,
+    private errorHandler: ErrorHandlerService,
   ) { }
 
   async ngOnInit() {
     this.collectionId = this.route.snapshot.paramMap.get('id');
     if (this.collectionId) {
+      await this.getCollectionInfo(this.collectionId);
       await this.loadCollectionAssets(this.collectionId);
     }
   }
@@ -39,40 +43,38 @@ export class AssetDetailsPage implements OnInit, OnDestroy {
     }
   }
 
-  async loadCollectionAssets(id: string) {
-    const loading = await this.loadingController.create({
-      message: 'Loading asset details...',
-    });
-    await loading.present();
+  async getCollectionInfo(collectionId: string) {
+    try {
+      await this.errorHandler.showLoading('Loading collections...');
+      this.collection = await this.collectionService.getCollection(collectionId);
+      console.log('Collection:', this.collection);
+      await this.errorHandler.hideLoading();
+    } catch (error) {
+      await this.errorHandler.hideLoading();
+      this.errorHandler.handleError(error);
+    }
+  }
 
+  async loadCollectionAssets(id: string) {
     try {
       const assets = await this.collectionService.getCollectionAssets(id);
-      console.log('Assets:', assets);
-
       this.assets = await Promise.all(
         assets.map(async (asset) => {
           const details = await this.assetService.getAssetDetails(asset.metadata);
-          console.log('Details:', details);
-
-          const messages = await this.hederaService.getMessages(details.topicId, new Date(0)).toPromise();
-          console.log('Messages:', messages);
-
-          const assetWithDetails = {
-            ...asset,
-            details,
-            events: messages
-          };
-
-          return assetWithDetails;
+          let messages: any = [];
+          try {
+            messages = await this.hederaService.getMessages(details.topicId, new Date(0)).toPromise();
+            console.log('Messages:', messages);
+          } catch (error) {
+            console.warn(`Failed to fetch messages for asset ${asset.id}, but continuing`, error);
+          }
+          console.log('Asset:', { ...asset, details, events: messages });
+          return { ...asset, details, events: messages };
         })
       );
-
-      console.log('Assets:', this.assets);
     } catch (error) {
       this.error = 'Failed to load asset details';
       console.error('Error loading asset details:', error);
-    } finally {
-      await loading.dismiss();
     }
   }
 
@@ -86,5 +88,9 @@ export class AssetDetailsPage implements OnInit, OnDestroy {
     } catch (error) {
       console.error('Error publishing event:', error);
     }
+  }
+
+  openOnHashscan(asset: any) {
+    window.open(`https://hashscan.io/testnet/token/${asset.id}/${asset.serialNumber}`, '_blank');
   }
 }
