@@ -11,8 +11,6 @@ Gemio is an innovative project aimed at revolutionizing industrial asset managem
 - [Setup and Installation](#setup-and-installation)
 - [Running the Application](#running-the-application)
 - [API Documentation](#api-documentation)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Overview
 
