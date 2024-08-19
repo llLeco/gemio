@@ -165,7 +165,7 @@ let HederaService = HederaService_1 = class HederaService {
     }
     async mintNFT(collectionId, metadata) {
         try {
-            const imageUrl = 'assets/icon/gemio_nft.jpeg';
+            const imageUrl = 'https://ipfs.io/ipfs/QmVfTrMpoj4WBFbYzbA7wC1V2bjoCkakUmPqjebxT7t8Ce?filename=Asset%20NFT.png';
             const enhancedMetadata = Object.assign(Object.assign({}, metadata), { image: imageUrl });
             console.log('Minting NFT with metadata:', enhancedMetadata, 'for collection:', collectionId);
             const supplyKey = sdk_1.PrivateKey.fromString(this.configService.get('HEDERA_PRIVATE_KEY'));
@@ -284,7 +284,7 @@ let HederaService = HederaService_1 = class HederaService {
                     const buffer = Buffer.from(message.contents).toString("utf8");
                     const parsedMessage = JSON.parse(buffer);
                     messages.push({
-                        message: parsedMessage.message,
+                        message: parsedMessage,
                         timestamp: message.consensusTimestamp.toDate()
                     });
                     if (messages.length >= messageCount) {

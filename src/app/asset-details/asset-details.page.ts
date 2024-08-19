@@ -64,11 +64,11 @@ export class AssetDetailsPage implements OnInit, OnDestroy {
           let messages: any = [];
           try {
             messages = await this.hederaService.getMessages(details.topicId, new Date(0)).toPromise();
+            messages.sort((a:any, b:any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
             console.log('Messages:', messages);
           } catch (error) {
             console.warn(`Failed to fetch messages for asset ${asset.id}, but continuing`, error);
           }
-          console.log('Asset:', { ...asset, details, events: messages });
           return { ...asset, details, events: messages };
         })
       );

@@ -214,7 +214,7 @@ export class HederaService implements OnModuleInit, OnModuleDestroy {
 
   async mintNFT(collectionId: string, metadata: any): Promise<string> {
     try {
-      const imageUrl = 'assets/icon/gemio_nft.jpeg';
+      const imageUrl = 'https://ipfs.io/ipfs/QmVfTrMpoj4WBFbYzbA7wC1V2bjoCkakUmPqjebxT7t8Ce?filename=Asset%20NFT.png';
         const enhancedMetadata = {
           ...metadata,
           image: imageUrl
@@ -360,7 +360,7 @@ export class HederaService implements OnModuleInit, OnModuleDestroy {
               const buffer = Buffer.from(message.contents).toString("utf8");
               const parsedMessage = JSON.parse(buffer);
               messages.push({
-                message: parsedMessage.message,
+                message: parsedMessage,
                 timestamp: message.consensusTimestamp.toDate()
               });
               if (messages.length >= messageCount) {

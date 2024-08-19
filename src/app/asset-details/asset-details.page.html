@@ -92,7 +92,7 @@
 
                 <ion-item class="event-item" *ngFor="let event of asset.events">
                   <ion-label class="ion-text-wrap">
-                    <h5>{{ event.message }}</h5>
+                    <h5> <pre> {{ event.message | json }} </pre> </h5>
                     <p>{{event.timestamp | date : 'medium'}}</p>
                   </ion-label>
                 </ion-item>

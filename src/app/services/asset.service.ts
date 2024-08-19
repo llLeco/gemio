@@ -75,9 +75,7 @@ export class AssetService {
   async postAssetEvent(topicId: string, message: string): Promise<any> {
     try {
       const response = await axios.post(
-        `${this.apiUrl}/${topicId}/events`,
-        { message: message },
-        { headers: this.getHeaders() }
+        `${this.apiUrl}/${topicId}/events`, message, { headers: this.getHeaders() }
       );
       return response.data;
     } catch (error) {
