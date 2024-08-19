@@ -3,6 +3,7 @@ import { AssetService } from '../services/asset.service';
 import { CollectionService } from '../services/collection.service';
 import { ErrorHandlerService } from '../services/error-handler.service';
 import { AuthService } from '../services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
@@ -20,12 +21,12 @@ export class DashboardPage implements OnInit {
     private assetService: AssetService,
     private collectionService: CollectionService,
     private errorHandler: ErrorHandlerService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) { }
 
   ngOnInit() {
     this.loadUserInfo();
-    // this.loadCollections();
   }
 
   async loadUserInfo() {
@@ -35,18 +36,6 @@ export class DashboardPage implements OnInit {
     this.hederaAccountId = userInfo.hederaAccountId;
   }
 
-  // async loadCollections() {
-  //   try {
-  //     await this.errorHandler.showLoading('Loading collections...');
-  //     this.collections = await this.collectionService.getCollections();
-  //     console.log('Collections', this.collections);
-  //     await this.errorHandler.hideLoading();
-  //   } catch (error) {
-  //     await this.errorHandler.hideLoading();
-  //     this.errorHandler.handleError(error);
-  //   }
-  // }
-
   async doRefresh(event: any) {
     try {
       this.collections = await this.collectionService.getCollections();
@@ -55,6 +44,15 @@ export class DashboardPage implements OnInit {
       this.errorHandler.handleError(error);
     } finally {
       event.target.complete();
+    }
+  }
+
+  async logout() {
+    try {
+      await this.authService.logout();
+      this.router.navigate(['/login']);
+    } catch (error) {
+      this.errorHandler.handleError(error);
     }
   }
 }

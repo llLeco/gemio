@@ -1,6 +1,11 @@
-<ion-header class="ion-no-border">
+<ion-header>
   <ion-toolbar>
     <ion-title class="ion-text-center">Dashboard</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="logout()">
+        Logout &nbsp; <ion-icon name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
