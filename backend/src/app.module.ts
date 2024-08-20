@@ -6,7 +6,6 @@ import { AssetsModule } from './assets/asset.module';
 import { UsersModule } from './users/users.module';
 import { HederaModule } from './hedera/hedera.module';
 import { AuthModule } from './auth/auth.module';
-import { CacheModule } from '@nestjs/cache-manager';
 import { CollectionModule } from './collections/collection.module';
 
 @Module({
@@ -18,7 +17,6 @@ import { CollectionModule } from './collections/collection.module';
     HederaModule,
     AuthModule,
     UsersModule,
-    CacheModule.register(),
     CollectionModule,
   ],
   controllers: [AppController],

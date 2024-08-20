@@ -1,11 +1,10 @@
-import { Module, CacheModule } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { HederaService } from './hedera.service';
 import { HederaController } from './hedera.controller';
 
 @Module({
   imports: [
-    CacheModule.register(),
     ConfigModule,
   ],
   providers: [HederaService],

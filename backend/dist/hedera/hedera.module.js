@@ -17,7 +17,6 @@ exports.HederaModule = HederaModule;
 exports.HederaModule = HederaModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            common_1.CacheModule.register(),
             config_1.ConfigModule,
         ],
         providers: [hedera_service_1.HederaService],
