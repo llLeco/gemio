@@ -28,6 +28,10 @@ Gemio addresses critical challenges in information sharing and traceability for 
 - Streamlined collaboration between manufacturers, distributors, and maintenance teams
 - Enhanced decision-making based on comprehensive asset data
 
+## Additional Information
+
+Read our project [Gitbook](https://inovar-tech.gitbook.io/project-gemio)
+
 ## Key Features
 
 1. **Digital Twin Creation**: Generate precise digital representations of physical assets
