@@ -7,30 +7,31 @@ Gemio revolutionizes industrial asset management by creating "digital twins" usi
 **Access the live application here: http://34.174.181.4:8100/login**
 
 Test Credentials:
-- Username: creator
-- Password: 1221
+* Username: creator
+* Password: 1221
 
 ## Table of Contents
-- [Overview](#overview)
-- [Key Features](#key-features)
-- [Technology Stack](#technology-stack)
-- [Project Structure](#project-structure)
-- [Local Setup and Installation](#local-setup-and-installation)
-- [Running the Application Locally](#running-the-application-locally)
-- [API Documentation](#api-documentation)
+
+* [Overview](#overview)
+* [Key Features](#key-features)
+* [Technology Stack](#technology-stack)
+* [Local Setup and Installation](#local-setup-and-installation)
+* [Running the Application Locally](#running-the-application-locally)
+* [Market Validation](#market-validation)
+* [API Documentation](#api-documentation)
 
 ## Overview
 
 Gemio addresses critical challenges in information sharing and traceability for the manufacturing and maintenance of high-value industrial machinery. By leveraging blockchain technology, we offer:
 
-- Secure and immutable record-keeping
-- Real-time asset tracking and management
-- Streamlined collaboration between manufacturers, distributors, and maintenance teams
-- Enhanced decision-making based on comprehensive asset data
+* Secure and immutable record-keeping
+* Real-time asset tracking and management
+* Streamlined collaboration between manufacturers, distributors, and maintenance teams
+* Enhanced decision-making based on comprehensive asset data
 
-## Additional Information
+### Additional Information
 
-For full project documentation, please visit our [Gemio Gitbook](https://inovar-tech.gitbook.io/project-gemio)
+For full project documentation, please visit our [Gemio Gitbook](https://gemio.gitbook.io/)
 
 ## Key Features
 
@@ -44,93 +45,68 @@ For full project documentation, please visit our [Gemio Gitbook](https://inovar-
 ## Technology Stack
 
 ### Frontend
-- Angular 18
-- Ionic Framework
+* Angular 18
+* Ionic Framework
 
 ### Backend
-- NestJS
-- Hedera JavaScript SDK
+* NestJS
+* Hedera JavaScript SDK
 
 ### Blockchain
-- Hedera Hashgraph
-
-## Project Structure
-
-The project consists of two main components:
-
-1. Frontend (Ionic/Angular application)
-2. Backend (NestJS application)
-
-### Frontend Structure
-```
-src/
-├── app/
-│   ├── asset-details/
-│   ├── asset-form/
-│   ├── collection-form/
-│   ├── collections/
-│   ├── dashboard/
-│   ├── guards/
-│   ├── login/
-│   ├── permissions/
-│   ├── services/
-│   └── shared/
-├── assets/
-├── environments/
-└── theme/
-```
-
-### Backend Structure
-```
-backend/
-├── src/
-│   ├── assets/
-│   ├── auth/
-│   ├── collections/
-│   ├── hedera/
-│   ├── models/
-│   └── users/
-└── test/
-```
+* Hedera Hashgraph
 
 ## Local Setup and Installation
 
 1. Clone the repository:
-   ```
-   git clone https://github.com/yourusername/gemio.git
-   cd gemio
-   ```
+
+```bash
+git clone https://github.com/yourusername/gemio.git
+cd gemio
+```
 
 2. Install dependencies:
-   ```
-   npm install
-   cd backend && npm install
-   ```
+
+```bash
+npm install
+cd backend && npm install
+```
 
 3. Set up environment variables:
    Create a `.env` file in the `backend` directory with:
-   ```
-   HEDERA_ACCOUNT_ID=your_hedera_account_id
-   HEDERA_PRIVATE_KEY=your_hedera_private_key
-   HEDERA_NETWORK=testnet
-   JWT_SECRET=your_jwt_secret
-   ```
+
+```makefile
+HEDERA_ACCOUNT_ID=your_hedera_account_id
+HEDERA_PRIVATE_KEY=your_hedera_private_key
+HEDERA_NETWORK=testnet
+JWT_SECRET=your_jwt_secret
+```
 
 ## Running the Application Locally
 
 1. Start both frontend and backend:
-   ```
-   npm run start:dev
-   ```
+
+```arduino
+npm run start:dev
+```
 
 2. Access the application at `http://localhost:8100`
+
+## Market Validation
+
+Market validation for Gemio has been achieved through strategic partnerships and interest from key industry players:
+
+* **Iliot**: As a service provider, Iliot has agreed to support the project and perform the first integration of Gemio's service for asset import and OS (Order of Service) creation. This partnership was highlighted in our video pitch.
+
+* **Parker Hannifin**: This air compressor machinery manufacturer has expressed support for Gemio and is eager to participate in the first stage of testing. Their involvement signals strong interest from potential end-users within the industry.
+
+These early validations demonstrate market demand and interest in the Gemio solution, providing a solid foundation for further development and expansion.
 
 ## API Documentation
 
 Main API endpoints:
-- `/auth`: Authentication
-- `/assets`: Asset management
-- `/collections`: Collection management
-- `/hedera`: Hedera-specific operations
+* `/auth`: Authentication
+* `/assets`: Asset management
+* `/collections`: Collection management
+* `/hedera`: Hedera-specific operations
 
 For detailed API documentation, please refer to the individual controller files in the backend source code.
