@@ -30,7 +30,7 @@ Gemio addresses critical challenges in information sharing and traceability for 
 
 ## Additional Information
 
-Read our full project documentation at [Gemio Gitbook](https://inovar-tech.gitbook.io/project-gemio)
+For full project documentation, please visit our [Gemio Gitbook](https://inovar-tech.gitbook.io/project-gemio)
 
 ## Key Features
 
